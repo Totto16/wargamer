@@ -1,82 +1,82 @@
 {
-  "name": "wargamer",
-  "version": "0.5.0",
-  "description": "Node.js client library for the Wargaming.net API.",
-  "keywords": [
-    "client library",
-    "api",
-    "rest",
-    "wargaming",
-    "world of tanks",
-    "world of tanks blitz",
-    "world of tanks console",
-    "world of warships",
-    "world of warplanes",
-    "wot",
-    "wotb",
-    "wotx",
-    "wowp",
-    "wows"
-  ],
-  "homepage": "https://github.com/hkwu/wargamer#readme",
-  "bugs": {
-    "url": "https://github.com/hkwu/wargamer/issues"
-  },
-  "license": "MIT",
-  "author": "Kelvin Wu <kelvinwu1996@gmail.com>",
-  "files": [
-    "lib",
-    "dist"
-  ],
-  "main": "lib/index.js",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/hkwu/wargamer.git"
-  },
-  "scripts": {
-    "build": "babel src --out-dir lib",
-    "build:umd": "webpack --env.target=dev && webpack --env.target=prod",
-    "watch": "babel --watch src --out-dir lib",
-    "lint": "eslint src",
-    "lint:fix": "eslint src --fix",
-    "test": "mocha --require babel-register --recursive",
-    "prepublishOnly": "npm test && npm run build && npm run build:umd",
-    "docs:build": "docma -c docma.config.json --dest _gh_pages",
-    "docs:prepublish": "npm run docs:build && cp CNAME _gh_pages/CNAME",
-    "docs:publish": "npm run docs:prepublish && cd _gh_pages && git init && git checkout -b gh-pages && git add . && git commit -am 'Update docs.' && git push git@github.com:hkwu/wargamer gh-pages --force"
-  },
-  "dependencies": {
-    "es6-error": "^4.0.0",
-    "fuse.js": "^2.6.1",
-    "stale-lru-cache": "^5.1.1",
-    "superagent": "^3.3.1"
-  },
-  "devDependencies": {
-    "@types/stale-lru-cache": "^5.1.6",
-    "@types/superagent": "^8.1.9",
-    "babel-cli": "^6.11.4",
-    "babel-core": "^6.21.0",
-    "babel-eslint": "^7.1.1",
-    "babel-loader": "^6.2.10",
-    "babel-plugin-transform-class-properties": "^6.22.0",
-    "babel-plugin-transform-object-rest-spread": "^6.20.2",
-    "babel-preset-env": "^1.1.4",
-    "babel-register": "^6.18.0",
-    "chai": "^3.5.0",
-    "chai-as-promised": "^6.0.0",
-    "docma": "^1.3.0",
-    "dotenv": "^2.0.0",
-    "eslint": "^3.1.1",
-    "eslint-config-airbnb-base": "^11.0.0",
-    "eslint-loader": "^1.6.1",
-    "eslint-plugin-import": "^2.2.0",
-    "mocha": "^3.0.2",
-    "typescript": "^5.7.2",
-    "webpack": "^2.2.0",
-    "webpack-merge": "^2.0.0"
-  },
-  "engines": {
-    "node": ">=4"
-  },
-  "packageManager": "yarn@1.22.22"
+    "name": "wargamer",
+    "version": "0.5.0",
+    "description": "Node.js client library for the Wargaming.net API.",
+    "keywords": [
+        "client library",
+        "api",
+        "rest",
+        "wargaming",
+        "world of tanks",
+        "world of tanks blitz",
+        "world of tanks console",
+        "world of warships",
+        "world of warplanes",
+        "wot",
+        "wotb",
+        "wotx",
+        "wowp",
+        "wows"
+    ],
+    "homepage": "https://github.com/hkwu/wargamer#readme",
+    "bugs": {
+        "url": "https://github.com/hkwu/wargamer/issues"
+    },
+    "license": "MIT",
+    "author": "Kelvin Wu <kelvinwu1996@gmail.com>",
+    "files": [
+        "lib",
+        "dist"
+    ],
+    "main": "lib/index.js",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/hkwu/wargamer.git"
+    },
+    "scripts": {
+        "build": "babel src --out-dir lib",
+        "build:umd": "webpack --env.target=dev && webpack --env.target=prod",
+        "watch": "babel --watch src --out-dir lib",
+        "lint": "eslint src",
+        "lint:fix": "eslint src --fix",
+        "test": "mocha --require babel-register --recursive",
+        "prepublishOnly": "npm test && npm run build && npm run build:umd",
+        "docs:build": "docma -c docma.config.json --dest _gh_pages",
+        "docs:prepublish": "npm run docs:build && cp CNAME _gh_pages/CNAME",
+        "docs:publish": "npm run docs:prepublish && cd _gh_pages && git init && git checkout -b gh-pages && git add . && git commit -am 'Update docs.' && git push git@github.com:hkwu/wargamer gh-pages --force"
+    },
+    "dependencies": {
+        "es6-error": "^4.0.0",
+        "fuse.js": "^2.6.1",
+        "stale-lru-cache": "^5.1.1",
+        "superagent": "^3.3.1"
+    },
+    "devDependencies": {
+        "@types/stale-lru-cache": "^5.1.6",
+        "@types/superagent": "^8.1.9",
+        "babel-cli": "^6.11.4",
+        "babel-core": "^6.21.0",
+        "babel-eslint": "^7.1.1",
+        "babel-loader": "^6.2.10",
+        "babel-plugin-transform-class-properties": "^6.22.0",
+        "babel-plugin-transform-object-rest-spread": "^6.20.2",
+        "babel-preset-env": "^1.1.4",
+        "babel-register": "^6.18.0",
+        "chai": "^3.5.0",
+        "chai-as-promised": "^6.0.0",
+        "docma": "^1.3.0",
+        "dotenv": "^2.0.0",
+        "eslint": "^3.1.1",
+        "eslint-config-airbnb-base": "^11.0.0",
+        "eslint-loader": "^1.6.1",
+        "eslint-plugin-import": "^2.2.0",
+        "mocha": "^3.0.2",
+        "typescript": "^5.7.2",
+        "webpack": "^2.2.0",
+        "webpack-merge": "^2.0.0"
+    },
+    "engines": {
+        "node": ">=4"
+    },
+    "packageManager": "yarn@1.22.22"
 }
