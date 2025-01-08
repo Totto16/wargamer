@@ -5,8 +5,12 @@
     "singleQuote": true,
     "overrides": [
         {
-            "files": ["**.ts", "eslint.config.mjs"],
-            "excludeFiles": ["tsup.config.ts", "vitest.config.ts"],
+            "files": ["**.ts"],
+            "excludeFiles": [
+                "tsup.config.ts",
+                "vitest.config.mts",
+                "eslint.config.mts"
+            ],
             "options": {
                 "trailingComma": "all",
                 "tabWidth": 2,

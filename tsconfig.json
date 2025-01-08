@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "target": "ES2024",
+        "target": "ES2023",
         "module": "commonjs",
         "esModuleInterop": true,
         "strict": true,
@@ -40,5 +40,7 @@
         "rootDir": "src",
         "outDir": "dist"
     },
-    "include": ["src/**/*.ts"]
+    "include": [
+        "src/**/*.ts"
+    ]
 }
