@@ -1,14 +1,16 @@
 import 'dotenv/config';
-import chai, { expect } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
+
 import APIError from '../../src/errors/APIError';
 import APIResponse from '../../src/responses/APIResponse';
-import BaseClient from '../../src/clients/BaseClient';
+import BaseClient, {
+  type BaseClientOptions,
+} from '../../src/clients/BaseClient';
+import { describe, expect, it } from 'vitest';
 
 describe('BaseClient', function () {
   describe('#constructor()', function () {
     it('correctly constructs itself', function () {
-      const options = {
+      const options: BaseClientOptions = {
         type: 'wot',
         realm: 'na',
         applicationId: process.env.APPLICATION_ID,
@@ -43,7 +45,9 @@ describe('BaseClient', function () {
         applicationId: process.env.APPLICATION_ID,
       };
 
-      expect(() => new BaseClient(badRealm)).to.throw(TypeError);
+      expect(() => new BaseClient(badRealm as BaseClientOptions)).to.throw(
+        TypeError,
+      );
 
       const nonStringRealm = {
         type: 'wot',
@@ -51,7 +55,9 @@ describe('BaseClient', function () {
         applicationId: process.env.APPLICATION_ID,
       };
 
-      expect(() => new BaseClient(nonStringRealm)).to.throw(TypeError);
+      expect(
+        () => new BaseClient(nonStringRealm as unknown as BaseClientOptions),
+      ).to.throw(TypeError);
 
       const nonStringApplicationId = {
         type: 'wot',
@@ -59,17 +65,16 @@ describe('BaseClient', function () {
         applicationId: 2,
       };
 
-      expect(() => new BaseClient(nonStringApplicationId)).to.throw(TypeError);
+      expect(
+        () =>
+          new BaseClient(
+            nonStringApplicationId as unknown as BaseClientOptions,
+          ),
+      ).to.throw(TypeError);
     });
   });
 
   describe('#request()', function () {
-    this.timeout(0);
-
-    before(function () {
-      chai.use(chaiAsPromised);
-    });
-
     describe('fulfillment', function () {
       const client = new BaseClient({
         type: 'wot',
@@ -82,17 +87,15 @@ describe('BaseClient', function () {
       });
 
       it('fulfills with an APIResponse', function () {
-        return expect(accountListSearch).to.eventually.be.instanceof(
-          APIResponse,
-        );
+        return expect(accountListSearch).resolves.toBeInstanceOf(APIResponse);
       });
 
       it('has required response properties - meta', function () {
-        return expect(accountListSearch).to.eventually.have.property('meta');
+        return expect(accountListSearch).resolves.toHaveProperty('meta');
       });
 
       it('has required response properties - data', function () {
-        return expect(accountListSearch).to.eventually.have.property('data');
+        return expect(accountListSearch).resolves.toHaveProperty('data');
       });
 
       it('works with GET', function () {
@@ -100,7 +103,7 @@ describe('BaseClient', function () {
           search: 'test',
         });
 
-        return expect(accountListSearchGet).to.eventually.be.instanceof(
+        return expect(accountListSearchGet).resolves.toBeInstanceOf(
           APIResponse,
         );
       });
@@ -110,7 +113,7 @@ describe('BaseClient', function () {
           search: 'test',
         });
 
-        return expect(accountListSearchGet).to.eventually.be.instanceof(
+        return expect(accountListSearchGet).resolves.toBeInstanceOf(
           APIResponse,
         );
       });
@@ -127,7 +130,7 @@ describe('BaseClient', function () {
           application_id: process.env.APPLICATION_ID,
         });
 
-        return expect(overriden).to.eventually.be.instanceof(APIResponse);
+        return expect(overriden).resolves.toBeInstanceOf(APIResponse);
       });
 
       it('overrides default client options as needed', function () {
@@ -139,7 +142,7 @@ describe('BaseClient', function () {
 
         return expect(
           accountListSearchRu.then((response) => response.requestRealm),
-        ).to.eventually.equal('ru');
+        ).resolves.toEqual('ru');
       });
 
       it('trims method name slashes as needed', function () {
@@ -147,7 +150,7 @@ describe('BaseClient', function () {
           search: 'test',
         });
 
-        return expect(accountListSearchSlashes).to.eventually.be.instanceof(
+        return expect(accountListSearchSlashes).resolves.toBeInstanceOf(
           APIResponse,
         );
       });
@@ -161,7 +164,7 @@ describe('BaseClient', function () {
           mapSearchIdAndNameOnly.then(
             (response) => response.data['05_prohorovka'],
           ),
-        ).to.eventually.deep.equal({
+        ).resolves.deep.equal({
           arena_id: '05_prohorovka',
           name_i18n: 'Prokhorovka',
         });
@@ -175,29 +178,27 @@ describe('BaseClient', function () {
         applicationId: process.env.APPLICATION_ID,
       });
 
-      const accountListSearchBadApplicationId = client
-        .get('account/list', {
-          search: 'test',
-          application_id: 'foo',
-        })
-        .catch((error) => error);
+      const accountListSearchBadApplicationId = client.get('account/list', {
+        search: 'test',
+        application_id: 'foo',
+      });
 
       it('rejects with an APIError', function () {
-        return expect(
-          accountListSearchBadApplicationId,
-        ).to.eventually.be.instanceof(APIError);
+        return expect(accountListSearchBadApplicationId).rejects.toBeInstanceOf(
+          APIError,
+        );
       });
 
       it('rejects with an INVALID_APPLICATION_ID error when given a bad application ID', function () {
         return expect(
           accountListSearchBadApplicationId.then((error) => error.apiMessage),
-        ).to.eventually.equal('INVALID_APPLICATION_ID');
+        ).resolves.toEqual('INVALID_APPLICATION_ID');
       });
 
       it('rejects and logs the correct API method used', function () {
         return expect(
           accountListSearchBadApplicationId.then((error) => error.method),
-        ).to.eventually.equal('account/list');
+        ).resolves.toEqual('account/list');
       });
     });
   });

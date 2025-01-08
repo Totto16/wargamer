@@ -1,11 +1,14 @@
 import 'dotenv/config';
-import { expect } from 'chai';
-import APIResponse from '../../src/responses/APIResponse';
+
+import APIResponse, {
+  type APIResponseOptions,
+} from '../../src/responses/APIResponse';
 import WorldOfTanks from '../../src/clients/WorldOfTanks';
+import { describe, it, expect } from 'vitest';
 
 describe('APIResponse', function () {
   describe('#constructor()', function () {
-    const data = {
+    const data: APIResponseOptions<[]> = {
       client: new WorldOfTanks({
         realm: 'na',
         applicationId: process.env.APPLICATION_ID,
@@ -18,7 +21,7 @@ describe('APIResponse', function () {
       },
     };
 
-    const apiResponse = new APIResponse(data);
+    const apiResponse = new APIResponse<[]>(data);
 
     it('correctly constructs itself', function () {
       expect(apiResponse.client).to.equal(data.client);

@@ -21,8 +21,8 @@ export type RealmOrRegionString = Realm | RegionString;
 export type ClientOptions = {
   realm: RealmOrRegionString; // The realm/region this client is for.
   applicationId: string; // The application ID of this client.
-  accessToken: string | null; // The access token for this client, if it will be using one.
-  language: string | null; // The default localization language to use for API responses.
+  accessToken?: string | null; // The access token for this client, if it will be using one.
+  language?: string | null; // The default localization language to use for API responses.
   // eslint-disable-next-line max-len
   cacheTimeToLive?: number; // The time to live in seconds for the client's data cache entries. `null` if no there is no TTL.
   cacheMaxSize?: number; // The max number of entries in the client's data cache.
@@ -93,7 +93,7 @@ type ModifiedClientOptions = ClientOptions & {
   realm: AnyCase<RealmOrRegionString>; // The realm/region this client is for. Can be in any case
 };
 
-interface BaseClientOptions extends ModifiedClientOptions {
+export interface BaseClientOptions extends ModifiedClientOptions {
   type: APIType;
 }
 
@@ -119,12 +119,12 @@ class BaseClient {
   /**
    * The realm, i.e. region of this client.
    */
-  private realm: RealmOrRegionString;
+  readonly realm: RealmOrRegionString;
 
   /**
    * The application ID for this client.
    */
-  private applicationId: string;
+  readonly applicationId: string;
 
   /**
    * The access token for this client.
@@ -134,7 +134,7 @@ class BaseClient {
   /**
    * The default localization language for this client.
    */
-  private language: string | null;
+  readonly language: string | null;
 
   /**
    * The client's Authentication module.
@@ -144,7 +144,7 @@ class BaseClient {
   /**
    * The base API URI for this client.
    */
-  private baseUri: string;
+  readonly baseUri: string;
 
   /**
    * The API response cache.
@@ -182,9 +182,9 @@ class BaseClient {
 
     this.applicationId = applicationId;
 
-    this.accessToken = accessToken;
+    this.accessToken = accessToken ?? null;
 
-    this.language = language;
+    this.language = language ?? null;
 
     this.authentication = new Authentication(this);
 

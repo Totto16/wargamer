@@ -1,7 +1,8 @@
 import 'dotenv/config';
-import { expect } from 'chai';
+
 import APIError from '../../src/errors/APIError';
 import WorldOfTanks from '../../src/clients/WorldOfTanks';
+import { describe, expect, it } from 'vitest';
 
 describe('APIError', function () {
   describe('#constructor()', function () {

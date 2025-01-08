@@ -1,5 +1,5 @@
-import { expect } from 'chai';
 import hashCode from '../../src/utils/hashCode';
+import { describe, expect, it } from 'vitest';
 
 describe('hashCode()', function () {
   it('hashes strings', function () {

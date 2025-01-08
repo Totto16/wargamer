@@ -1,7 +1,7 @@
 import 'dotenv/config';
-import chai, { expect } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
+
 import WorldOfTanksConsole from '../../../src/clients/WorldOfTanksConsole';
+import { describe, expect, it } from 'vitest';
 
 describe('Tankopedia', function () {
   const client = new WorldOfTanksConsole({
@@ -10,10 +10,6 @@ describe('Tankopedia', function () {
   });
 
   this.timeout(0);
-
-  before(function () {
-    chai.use(chaiAsPromised);
-  });
 
   describe('#findVehicle()', function () {
     it('finds vehicles by ID', function () {

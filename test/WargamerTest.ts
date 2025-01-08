@@ -1,18 +1,24 @@
 import 'dotenv/config';
-import { expect } from 'chai';
-import Wargamer from '../src/Wargamer';
+
+import Wargamer from '../src/Wargamer.ts';
 import WorldOfTanks from '../src/clients/WorldOfTanks';
 import WorldOfTanksBlitz from '../src/clients/WorldOfTanksBlitz';
 import WorldOfTanksConsole from '../src/clients/WorldOfTanksConsole';
 import WorldOfWarships from '../src/clients/WorldOfWarships';
 import WorldOfWarplanes from '../src/clients/WorldOfWarplanes';
 import Wargaming from '../src/clients/Wargaming';
+import { describe, expect, it } from 'vitest';
+import type { ClientOptions } from '../src/clients/BaseClient.ts';
 
 describe('Wargamer', function () {
   it('correctly constructs clients', function () {
-    const options = {
+    const applicationId = process.env.APPLICATION_ID;
+
+    expect(applicationId).toBeTypeOf('string');
+
+    const options: ClientOptions = {
       realm: 'na',
-      applicationId: process.env.APPLICATION_ID,
+      applicationId,
     };
 
     expect(Wargamer.WoT(options)).to.be.instanceof(WorldOfTanks);

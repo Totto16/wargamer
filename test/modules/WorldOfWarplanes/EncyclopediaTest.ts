@@ -1,18 +1,12 @@
 import 'dotenv/config';
-import chai, { expect } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
+
 import WorldOfWarplanes from '../../../src/clients/WorldOfWarplanes';
+import { describe, expect, it } from 'vitest';
 
 describe('Encyclopedia', function () {
   const client = new WorldOfWarplanes({
     realm: 'na',
     applicationId: process.env.APPLICATION_ID,
-  });
-
-  this.timeout(0);
-
-  before(function () {
-    chai.use(chaiAsPromised);
   });
 
   describe('#findPlane()', function () {

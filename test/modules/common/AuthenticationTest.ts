@@ -1,14 +1,10 @@
 import 'dotenv/config';
-import chai, { expect } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
+
 import WorldOfTanks from '../../../src/clients/WorldOfTanks';
 import WorldOfTanksConsole from '../../../src/clients/WorldOfTanksConsole';
+import { describe, expect, it } from 'vitest';
 
 describe('Authentication', function () {
-  before(function () {
-    chai.use(chaiAsPromised);
-  });
-
   describe('World of Tanks', function () {
     const client = new WorldOfTanks({
       realm: 'na',
@@ -17,20 +13,20 @@ describe('Authentication', function () {
 
     describe('#renewAccessToken()', function () {
       describe('rejection', function () {
-        it('rejects when client access token is not set', function () {
-          return expect(
-            client.authentication.renewAccessToken().catch((error) => error),
-          ).to.eventually.be.instanceof(Error);
+        it('rejects when client access token is not set', async function () {
+          return await expect(
+            client.authentication.renewAccessToken(),
+          ).rejects.toBeInstanceOf(Error);
         });
       });
     });
 
     describe('#destroyAccessToken()', function () {
       describe('rejection', function () {
-        it('rejects when client access token is not set', function () {
-          return expect(
-            client.authentication.destroyAccessToken().catch((error) => error),
-          ).to.eventually.be.instanceof(Error);
+        it('rejects when client access token is not set', async function () {
+          return await expect(
+            client.authentication.destroyAccessToken(),
+          ).rejects.toBeInstanceOf(Error);
         });
       });
     });
@@ -44,20 +40,20 @@ describe('Authentication', function () {
 
     describe('#renewAccessToken()', function () {
       describe('rejection', function () {
-        it('rejects when client access token is not set', function () {
-          return expect(
-            client.authentication.renewAccessToken().catch((error) => error),
-          ).to.eventually.be.instanceof(Error);
+        it('rejects when client access token is not set', async function () {
+          return await expect(
+            client.authentication.renewAccessToken(),
+          ).rejects.toBeInstanceOf(Error);
         });
       });
     });
 
     describe('#destroyAccessToken()', function () {
       describe('rejection', function () {
-        it('rejects when client access token is not set', function () {
-          return expect(
-            client.authentication.destroyAccessToken().catch((error) => error),
-          ).to.eventually.be.instanceof(Error);
+        it('rejects when client access token is not set', async function () {
+          return await expect(
+            client.authentication.destroyAccessToken(),
+          ).rejects.toBeInstanceOf(Error);
         });
       });
     });

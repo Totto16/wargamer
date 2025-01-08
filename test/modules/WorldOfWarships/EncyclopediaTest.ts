@@ -1,18 +1,12 @@
 import 'dotenv/config';
-import chai, { expect } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
+
+import { describe, expect, it } from 'vitest';
 import WorldOfWarships from '../../../src/clients/WorldOfWarships';
 
 describe('Encyclopedia', function () {
   const client = new WorldOfWarships({
     realm: 'na',
     applicationId: process.env.APPLICATION_ID,
-  });
-
-  this.timeout(0);
-
-  before(function () {
-    chai.use(chaiAsPromised);
   });
 
   describe('#findShip()', function () {

@@ -1,5 +1,5 @@
-import { expect } from 'chai';
 import mapValues from '../../src/utils/mapValues';
+import { describe, expect, it } from 'vitest';
 
 describe('mapValues()', function () {
   it('maps object values correctly', function () {

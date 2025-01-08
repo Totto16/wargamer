@@ -1,18 +1,12 @@
 import 'dotenv/config';
-import chai, { expect } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
+
 import WorldOfTanksBlitz from '../../../src/clients/WorldOfTanksBlitz';
+import { describe, expect, it } from 'vitest';
 
 describe('Tankopedia', function () {
   const client = new WorldOfTanksBlitz({
     realm: 'na',
     applicationId: process.env.APPLICATION_ID,
-  });
-
-  this.timeout(0);
-
-  before(function () {
-    chai.use(chaiAsPromised);
   });
 
   describe('#findVehicle()', function () {

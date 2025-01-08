@@ -1,7 +1,8 @@
 import 'dotenv/config';
-import { expect } from 'chai';
+
 import BaseClient from '../../src/clients/BaseClient';
 import ClientModule from '../../src/modules/ClientModule';
+import { describe, expect, it } from 'vitest';
 
 describe('ClientModule', function () {
   const client = new BaseClient({
