@@ -37,13 +37,7 @@
         "suppressExcessPropertyErrors": false,
         "suppressImplicitAnyIndexErrors": false,
         "noStrictGenericChecks": false,
-        "rootDir": "src",
-        "outDir": "dist"
+        "rootDir": "."
     },
-    "include": ["src/**/*.ts"],
-    "references": [
-        {
-            "path": "./tsconfig.test.json"
-        }
-    ]
+    "include": ["test/**/*.ts"]
 }

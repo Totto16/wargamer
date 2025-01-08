@@ -4,5 +4,9 @@ export default defineConfig({
     test: {
         globals: true,
         environment: 'node',
+        include: ['test/**/*.ts'],
+        typecheck: {
+            tsconfig: './tsconfig.test.json',
+        },
     },
 })
