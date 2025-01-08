@@ -14,6 +14,7 @@ const compat = new FlatCompat({
 })
 
 export default [
+    ...compat.extends('airbnb-base'),
     ...tseslint.config(
         eslint.configs.recommended,
         tseslint.configs.recommended
