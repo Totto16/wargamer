@@ -139,7 +139,7 @@ class BaseClient {
     /**
      * The client's Authentication module.
      */
-    private authentication: Authentication
+    readonly authentication: Authentication
 
     /**
      * The base API URI for this client.

@@ -1,5 +1,5 @@
 import Accounts from '../modules/common/Accounts'
-import BaseClient from './BaseClient'
+import BaseClient, { type ClientOptions } from './BaseClient'
 import Encyclopedia from '../modules/WorldOfWarships/Encyclopedia'
 
 /**
@@ -7,11 +7,15 @@ import Encyclopedia from '../modules/WorldOfWarships/Encyclopedia'
  * @extends BaseClient
  */
 class WorldOfWarships extends BaseClient {
+    readonly accounts: Accounts
+
+    readonly encyclopedia: Encyclopedia
+
     /**
      * Constructor.
      * @param {ClientOptions} options - The client options.
      */
-    constructor(options) {
+    constructor(options: ClientOptions) {
         super({ ...options, type: 'wows' })
 
         /**

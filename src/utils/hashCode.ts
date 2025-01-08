@@ -4,7 +4,7 @@
  * @return {string} The hashed string.
  * @private
  */
-export default function hashCode(string) {
+export default function hashCode(string: string): string {
     let hash = 0
 
     if (!string.length) {

@@ -1,4 +1,11 @@
+import type BaseClient from '../../clients/BaseClient'
 import ClientModule from '../ClientModule'
+
+export type Player = {
+    account_id: number
+}
+
+export type SearchType = 'exact' | 'startswith'
 
 /**
  * @classdesc Module for Accounts endpoints.
@@ -9,7 +16,7 @@ class Accounts extends ClientModule {
      * Constructor.
      * @param {BaseClient} client - The API client this module belongs to.
      */
-    constructor(client) {
+    constructor(client: BaseClient) {
         super(client, 'accounts')
     }
 
@@ -25,19 +32,23 @@ class Accounts extends ClientModule {
      * If `searchType` is `'exact'`, the resolved value is the matching player's ID,
      *   or `null` if no match was found.
      */
-    findPlayerId(name, searchType = 'exact') {
+    findPlayerId(
+        name: string,
+        searchType: SearchType = 'exact'
+    ): Promise<Array<Player> | number | null> {
         switch (searchType.toLowerCase()) {
             case 'startswith':
                 return this.client
-                    .get('account/list', { search: name })
-                    .then((response) => response.data)
+                    .get<Player[]>('account/list', { search: name })
+                    .then((response) => response.data ?? null)
             case 'exact':
                 return this.client
-                    .get('account/list', { search: name })
-                    .then((response) =>
-                        response.data.length
-                            ? response.data[0].account_id
-                            : null
+                    .get<Player[]>('account/list', { search: name })
+                    .then(
+                        (response) =>
+                            (response.data && response.data.length
+                                ? response.data.at(0)?.account_id
+                                : null) ?? null
                     )
             default:
                 return Promise.reject(

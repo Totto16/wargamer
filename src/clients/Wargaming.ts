@@ -1,11 +1,13 @@
 import Accounts from '../modules/common/Accounts'
-import BaseClient from './BaseClient'
+import BaseClient, { type ClientOptions } from './BaseClient'
 
 /**
  * @classdesc The Wargaming.net API client.
  * @extends BaseClient
  */
 class Wargaming extends BaseClient {
+    readonly accounts: Accounts
+
     /**
      * Constructor.
      * @param {ClientOptions} options - The client options.
