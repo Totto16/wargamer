@@ -24,6 +24,10 @@
     },
     "license": "MIT",
     "author": "Kelvin Wu <kelvinwu1996@gmail.com>",
+    "contributors": [
+        "Kelvin Wu <kelvinwu1996@gmail.com>",
+        "Totto16"
+    ],
     "files": [
         "lib",
         "dist"
@@ -40,10 +44,7 @@
         "lint": "eslint src",
         "lint:fix": "eslint src --fix",
         "test": "mocha --require babel-register --recursive",
-        "prepublishOnly": "npm test && npm run build && npm run build:umd",
-        "docs:build": "docma -c docma.config.json --dest _gh_pages",
-        "docs:prepublish": "npm run docs:build && cp CNAME _gh_pages/CNAME",
-        "docs:publish": "npm run docs:prepublish && cd _gh_pages && git init && git checkout -b gh-pages && git add . && git commit -am 'Update docs.' && git push git@github.com:hkwu/wargamer gh-pages --force"
+        "prepublishOnly": "npm test && npm run build && npm run build:umd"
     },
     "dependencies": {
         "es6-error": "^4.1.1",
@@ -58,7 +59,6 @@
         "@types/superagent": "^8.1.9",
         "chai": "^5.1.2",
         "chai-as-promised": "^8.0.1",
-        "docma": "^3.2.2",
         "dotenv": "^16.4.7",
         "eslint": "^9.17.0",
         "eslint-config-airbnb-base": "^15.0.0",
