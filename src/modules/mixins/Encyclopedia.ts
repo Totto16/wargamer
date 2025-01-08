@@ -106,7 +106,6 @@ export const extractTopModules = function extractTopModules(
         const { price_xp, type } = module
 
         if (!topModules[type] || price_xp > topModules[type].price_xp) {
-            // eslint-disable-line camelcase, max-len
             return {
                 ...topModules,
                 [type]: module,

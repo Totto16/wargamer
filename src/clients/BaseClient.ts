@@ -302,7 +302,8 @@ class BaseClient {
             )
 
             // compute information for the cache
-            const { application_id, ...rest } = normalizedPayload // eslint-disable-line no-unused-vars  @typescript-eslint/no-unused-vars
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { application_id, ...rest } = normalizedPayload
             const cacheKey = hashCode(
                 `${requestUrl}${JSON.stringify(sortObjectByKey(rest))}`
             )
