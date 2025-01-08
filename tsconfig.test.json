@@ -4,7 +4,7 @@
         "module": "commonjs",
         "esModuleInterop": true,
         "strict": true,
-        "skipLibCheck": false,
+        "skipLibCheck": true,
         "alwaysStrict": true,
         "noImplicitAny": true,
         "strictNullChecks": true,
@@ -15,6 +15,7 @@
         "strictBindCallApply": true,
         "noPropertyAccessFromIndexSignature": true,
         "allowImportingTsExtensions": true,
+        "noEmit": true,
         "noUncheckedIndexedAccess": true,
         "exactOptionalPropertyTypes": true,
         // Linter Checks
@@ -39,5 +40,7 @@
         "noStrictGenericChecks": false,
         "rootDir": "."
     },
-    "include": ["test/**/*.ts"]
+    "include": [
+        "test/**/*.ts"
+    ]
 }

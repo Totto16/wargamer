@@ -3,6 +3,10 @@ import ClientModule from '../ClientModule.ts';
 import { resolveEntry } from '../mixins/Encyclopedia.ts';
 import type BaseClient from '../../clients/BaseClient';
 
+type Plane = {
+  //TODO
+};
+
 /**
  * @classdesc Module for the World of Warplanes Encyclopedia endpoint.
  * @extends ClientModule
@@ -40,7 +44,7 @@ class Encyclopedia extends ClientModule {
   findPlane(
     identifier: number | string,
   ): Promise<Record<string, unknown> | null> {
-    return resolveEntry.call(this, {
+    return (resolveEntry<string, Plane>).call(this, {
       identifier,
       indexEndpoint: 'encyclopedia/planes',
       dataEndpoint: 'encyclopedia/planeinfo',

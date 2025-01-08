@@ -1,15 +1,21 @@
-import type { Fuse } from 'fuse.js';
+import Fuse from 'fuse.js';
 import type ClientModule from '../ClientModule';
+import type APIResponse from '../../responses/APIResponse';
+
+export type EncyclopediaModule = {
+  price_xp: number;
+  type: string;
+};
 
 /**
  * Searches for an entry in the encyclopedia endpoint for an API.
  */
-interface ResolveEntryParams {
+interface ResolveEntryParams<T> {
   identifier: number | string;
   indexEndpoint: string;
   dataEndpoint: string;
   identifierKey: string;
-  fuse: Fuse;
+  fuse: Fuse<T>;
   searchFields: Array<string>;
 }
 /**
@@ -37,10 +43,10 @@ interface ResolveEntryParams {
  * @this {ClientModule}
  * @private
  */
-export const resolveEntry = function resolveEntry<T>(
+export const resolveEntry = function resolveEntry<T extends string | number, D>(
   this: ClientModule,
-  params: ResolveEntryParams,
-) {
+  params: ResolveEntryParams<T>,
+): Promise<D | null> {
   const {
     identifier,
     indexEndpoint,
@@ -52,21 +58,27 @@ export const resolveEntry = function resolveEntry<T>(
 
   if (typeof identifier === 'number') {
     return this.client
-      .get<Array<T>>(dataEndpoint, { [identifierKey]: identifier })
-      .then((response) => response.data && response.data[identifier]);
+      .get<Array<D>>(dataEndpoint, { [identifierKey]: identifier })
+      .then((response) => (response.data && response.data[identifier]) ?? null);
   }
   if (typeof identifier === 'string') {
     return this.client
-      .get(indexEndpoint, { fields: [...searchFields, identifierKey] })
-      .then((response) => {
+      .get<Record<string, T>>(indexEndpoint, {
+        fields: [...searchFields, identifierKey],
+      })
+      .then((response): null | Promise<[T, APIResponse<Record<T, D>>]> => {
         const entries = response.data;
 
-        fuse.set(
-          Object.keys(entries).reduce(
-            (accumulated, next) => [...accumulated, entries[next]],
-            [],
-          ),
+        if (!entries) {
+          return null;
+        }
+
+        const collection: T[] = Object.keys(entries).reduce<T[]>(
+          (accumulated, next): T[] => [...accumulated, entries[next]!],
+          [] as T[],
         );
+
+        fuse.setCollection(collection);
 
         const results = fuse.search(identifier);
 
@@ -74,16 +86,30 @@ export const resolveEntry = function resolveEntry<T>(
           return null;
         }
 
-        const [{ [identifierKey]: matchedId }] = results;
+        const [result1, ..._rest] = results;
+
+        if (!result1) {
+          return null;
+        }
+
+        const { item: matchedId } = result1;
 
         return Promise.all([
           matchedId,
-          this.client.get(dataEndpoint, {
+          this.client.get<Record<T, D>>(dataEndpoint, {
             [identifierKey]: matchedId,
           }),
         ]);
       })
-      .then(([matchedId, response]) => response.data[matchedId]);
+      .then((result) => {
+        if (!result) {
+          return null;
+        }
+
+        const [matchedId, response] = result;
+
+        return response.data?.[matchedId] ?? null;
+      });
   }
 
   return Promise.reject(
@@ -99,24 +125,32 @@ export const resolveEntry = function resolveEntry<T>(
  *   the module tree. The module types are the keys and the module data are the values.
  * @private
  */
-export const extractTopModules = function extractTopModules(
-  moduleTree: Record<string, unknown>,
-) {
-  return Object.keys(moduleTree).reduce((topModules, moduleId) => {
-    const module = moduleTree[moduleId];
-    // eslint-disable-next-line camelcase
-    const { price_xp, type } = module;
+export const extractTopModules = function extractTopModules<
+  EM extends EncyclopediaModule = EncyclopediaModule,
+>(moduleTree: Record<string, EM>) {
+  return Object.keys(moduleTree).reduce(
+    (topModules: Record<string, EM>, moduleId) => {
+      const module = moduleTree[moduleId];
 
-    // eslint-disable-next-line camelcase
-    if (!topModules[type] || price_xp > topModules[type].price_xp) {
-      return {
-        ...topModules,
-        [type]: module,
-      };
-    }
+      if (!module) {
+        return topModules;
+      }
 
-    return topModules;
-  }, {});
+      // eslint-disable-next-line camelcase
+      const { price_xp, type } = module;
+
+      // eslint-disable-next-line camelcase
+      if (!topModules[type] || price_xp > topModules[type].price_xp) {
+        return {
+          ...topModules,
+          [type]: module,
+        };
+      }
+
+      return topModules;
+    },
+    {} as Record<string, EM>,
+  );
 };
 
 /**
@@ -127,6 +161,10 @@ interface LocalizeParams {
   type: string;
   slug: string;
 }
+
+export type Section = {
+  name: string;
+};
 
 /**
  * Localizes a slug using values returned from an API endpoint.
@@ -139,17 +177,19 @@ interface LocalizeParams {
  * @this {ClientModule}
  * @private
  */
-export const localize = function localize(
+export const localize = function localize<T = string>(
   this: ClientModule,
   { method, type, slug }: LocalizeParams,
-) {
-  return this.client.get(method, {}).then((response) => {
-    const translations = response.data[type];
+): Promise<T | null> {
+  return this.client
+    .get<Record<string, Record<string, T>>>(method, {})
+    .then((response) => {
+      const translations = response.data?.[type];
 
-    if (!translations || typeof translations !== 'object') {
-      throw new Error(`Invalid translation type: ${type}.`);
-    }
+      if (!translations || typeof translations !== 'object') {
+        throw new Error(`Invalid translation type: ${type}.`);
+      }
 
-    return translations[slug];
-  });
+      return translations[slug] ?? null;
+    });
 };

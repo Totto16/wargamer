@@ -13,25 +13,25 @@ describe('Encyclopedia', function () {
     it('finds ships by ID', function () {
       return expect(
         client.encyclopedia.findShip(3522082512),
-      ).to.eventually.have.property('name', 'ARP Nachi');
+      ).resolves.toHaveProperty('name', 'ARP Nachi');
     });
 
     it('finds ships by name', function () {
       return expect(
         client.encyclopedia.findShip('kongo'),
-      ).to.eventually.have.property('name', 'Kongo');
+      ).resolves.toHaveProperty('name', 'Kongo');
     });
 
     it('finds ships by partial name match', function () {
       return expect(
         client.encyclopedia.findShip('spite'),
-      ).to.eventually.have.property('name', 'Warspite');
+      ).resolves.toHaveProperty('name', 'Warspite');
     });
 
     it('throws for invalid identifier types', function () {
       return expect(
-        client.encyclopedia.findShip({}).catch((error) => error),
-      ).to.eventually.be.instanceof(Error);
+        client.encyclopedia.findShip({} as string),
+      ).rejects.toBeInstanceOf(Error);
     });
   });
 
@@ -39,7 +39,7 @@ describe('Encyclopedia', function () {
     it('localizes ship types', function () {
       return expect(
         client.encyclopedia.localizeShipType('AirCarrier'),
-      ).to.eventually.equal('Aircraft Carrier');
+      ).resolves.toEqual('Aircraft Carrier');
     });
   });
 
@@ -47,7 +47,7 @@ describe('Encyclopedia', function () {
     it('localizes languages', function () {
       return expect(
         client.encyclopedia.localizeLanguage('zh-tw'),
-      ).to.eventually.equal('繁體中文');
+      ).resolves.toEqual('繁體中文');
     });
   });
 
@@ -57,7 +57,7 @@ describe('Encyclopedia', function () {
         client.encyclopedia.localizeShipModification(
           'PCM026_LookoutStation_Mod_I',
         ),
-      ).to.eventually.equal('Target Acquisition System Modification 1');
+      ).resolves.toEqual('Target Acquisition System Modification 1');
     });
   });
 
@@ -65,7 +65,7 @@ describe('Encyclopedia', function () {
     it('localizes ship modules', function () {
       return expect(
         client.encyclopedia.localizeShipModule('TorpedoBomber'),
-      ).to.eventually.equal('Torpedo Bombers');
+      ).resolves.toEqual('Torpedo Bombers');
     });
   });
 
@@ -73,7 +73,7 @@ describe('Encyclopedia', function () {
     it('localizes ship nations', function () {
       return expect(
         client.encyclopedia.localizeShipNation('pan_asia'),
-      ).to.eventually.equal('Pan-Asia');
+      ).resolves.toEqual('Pan-Asia');
     });
   });
 });

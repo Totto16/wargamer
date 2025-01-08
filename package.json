@@ -46,7 +46,8 @@
     "scripts": {
         "build": "tsup",
         "dev": "tsup --watch",
-        "test": "vitest run",
+        "test:check": "tsc --project tsconfig.test.json",
+        "test": "yarn run test:check && vitest run",
         "test:watch": "vitest",
         "lint": "eslint src",
         "lint:fix": "eslint src --fix",

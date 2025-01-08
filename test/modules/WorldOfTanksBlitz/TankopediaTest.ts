@@ -13,25 +13,25 @@ describe('Tankopedia', function () {
     it('finds vehicles by ID', function () {
       return expect(
         client.tankopedia.findVehicle(6673),
-      ).to.eventually.have.property('name', 'Marder II');
+      ).resolves.toHaveProperty('name', 'Marder II');
     });
 
     it('finds vehicles by name', function () {
       return expect(
         client.tankopedia.findVehicle('m10 wolverine'),
-      ).to.eventually.have.property('name', 'M10 Wolverine');
+      ).resolves.toHaveProperty('name', 'M10 Wolverine');
     });
 
     it('finds vehicles by partial name match', function () {
       return expect(
         client.tankopedia.findVehicle('universal carrier'),
-      ).to.eventually.have.property('name', 'Universal Carrier 2-pdr');
+      ).resolves.toHaveProperty('name', 'Universal Carrier 2-pdr');
     });
 
     it('throws for invalid identifier types', function () {
       return expect(
-        client.tankopedia.findVehicle({}).catch((error) => error),
-      ).to.eventually.be.instanceof(Error);
+        client.tankopedia.findVehicle({} as string),
+      ).rejects.toBeInstanceOf(Error);
     });
   });
 
@@ -39,7 +39,7 @@ describe('Tankopedia', function () {
     it('localizes languages', function () {
       return expect(
         client.tankopedia.localizeLanguage('zh-tw'),
-      ).to.eventually.equal('繁體中文');
+      ).resolves.toEqual('繁體中文');
     });
   });
 
@@ -47,7 +47,7 @@ describe('Tankopedia', function () {
     it('localizes achievement sections', function () {
       return expect(
         client.tankopedia.localizeAchievementSection('commemorative'),
-      ).to.eventually.equal('Commemorative Tokens');
+      ).resolves.toEqual('Commemorative Tokens');
     });
   });
 
@@ -55,7 +55,7 @@ describe('Tankopedia', function () {
     it('localizes vehicle types', function () {
       return expect(
         client.tankopedia.localizeVehicleType('AT-SPG'),
-      ).to.eventually.equal('Tank Destroyer');
+      ).resolves.toEqual('Tank Destroyer');
     });
   });
 
@@ -63,7 +63,7 @@ describe('Tankopedia', function () {
     it('localizes vehicle types', function () {
       return expect(
         client.tankopedia.localizeVehicleNation('ussr'),
-      ).to.eventually.equal('U.S.S.R.');
+      ).resolves.toEqual('U.S.S.R.');
     });
   });
 });

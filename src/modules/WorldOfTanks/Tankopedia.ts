@@ -4,6 +4,8 @@ import {
   extractTopModules,
   localize,
   resolveEntry,
+  type EncyclopediaModule,
+  type Section,
 } from '../mixins/Encyclopedia.ts';
 import type BaseClient from '../../clients/BaseClient';
 import type APIResponse from '../../responses/APIResponse';
@@ -19,12 +21,12 @@ const MODULE_ID_FIELDS: Record<string, string> = {
   vehicleTurret: 'turret_id',
 };
 
-type SingleVehicleData = {
-  modules_tree: Record<string, unknown>;
-};
-
-type VehicleModule = {
+interface VehicleModule extends EncyclopediaModule {
   module_id: string;
+}
+
+type SingleVehicleData = {
+  modules_tree: Record<string, VehicleModule>;
 };
 
 type VehicleData = {
@@ -67,7 +69,7 @@ class Tankopedia extends ClientModule {
    *   matched vehicle, or `null` if no vehicles were matched.
    */
   findVehicle(identifier: number | string): Promise<SingleVehicleData | null> {
-    return resolveEntry.call(this, {
+    return (resolveEntry<string, SingleVehicleData>).call(this, {
       identifier,
       indexEndpoint: 'encyclopedia/vehicles',
       dataEndpoint: 'encyclopedia/vehicles',
@@ -110,9 +112,8 @@ class Tankopedia extends ClientModule {
               return null;
             }
 
-            const topModules: Record<string, VehicleModule> = extractTopModules(
-              vehicleData.modules_tree,
-            );
+            const topModules: Record<string, VehicleModule> =
+              extractTopModules<VehicleModule>(vehicleData.modules_tree);
             const queryFields = Object.keys(topModules).reduce(
               (accumulated, next) => {
                 const fieldName = MODULE_ID_FIELDS[next];
@@ -172,8 +173,8 @@ class Tankopedia extends ClientModule {
    * @returns {Promise.<(string|undefined), Error>} Promise resolving to the
    *   translated slug, or `undefined` if it couldn't be translated.
    */
-  localizeCrewRole(slug: string): Promise<string | undefined> {
-    return localize.call(this, {
+  localizeCrewRole(slug: string): Promise<string | null> {
+    return (localize<string>).call(this, {
       method: 'encyclopedia/info',
       type: 'vehicle_crew_roles',
       slug,
@@ -186,8 +187,8 @@ class Tankopedia extends ClientModule {
    * @returns {Promise.<(string|undefined), Error>} Promise resolving to the
    *   translated slug, or `undefined` if it couldn't be translated.
    */
-  localizeLanguage(slug: string): Promise<string | undefined> {
-    return localize.call(this, {
+  localizeLanguage(slug: string): Promise<string | null> {
+    return (localize<string>).call(this, {
       method: 'encyclopedia/info',
       type: 'languages',
       slug,
@@ -201,16 +202,14 @@ class Tankopedia extends ClientModule {
    * @returns {Promise.<(string|undefined), Error>} Promise resolving to the
    *   translated slug, or `undefined` if it couldn't be translated.
    */
-  localizeAchievementSection(slug: string): Promise<string | undefined> {
-    return localize
+  localizeAchievementSection(slug: string): Promise<string | null> {
+    return (localize<Section>)
       .call(this, {
         method: 'encyclopedia/info',
         type: 'achievement_sections',
         slug,
       })
-      .then(
-        (section: undefined | { name?: string }) => section && section.name,
-      );
+      .then((section) => section && section.name);
   }
 
   /**
@@ -219,8 +218,8 @@ class Tankopedia extends ClientModule {
    * @returns {Promise.<(string|undefined), Error>} Promise resolving to the
    *   translated slug, or `undefined` if it couldn't be translated.
    */
-  localizeVehicleType(slug: string): Promise<string | undefined> {
-    return localize.call(this, {
+  localizeVehicleType(slug: string): Promise<string | null> {
+    return (localize<string>).call(this, {
       method: 'encyclopedia/info',
       type: 'vehicle_types',
       slug,
@@ -233,8 +232,8 @@ class Tankopedia extends ClientModule {
    * @returns {Promise.<(string|undefined), Error>} Promise resolving to the
    *   translated slug, or `undefined` if it couldn't be translated.
    */
-  localizeVehicleNation(slug: string): Promise<string | undefined> {
-    return localize.call(this, {
+  localizeVehicleNation(slug: string): Promise<string | null> {
+    return (localize<string>).call(this, {
       method: 'encyclopedia/info',
       type: 'vehicle_nations',
       slug,

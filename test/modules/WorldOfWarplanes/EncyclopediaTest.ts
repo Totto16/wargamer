@@ -13,25 +13,25 @@ describe('Encyclopedia', function () {
     it('finds planes by ID', function () {
       return expect(
         client.encyclopedia.findPlane(2702),
-      ).to.eventually.have.property('name_i18n', 'Ilyushin IL-8');
+      ).resolves.toHaveProperty('name_i18n', 'Ilyushin IL-8');
     });
 
     it('finds planes by name', function () {
       return expect(
         client.encyclopedia.findPlane('grumman f2f'),
-      ).to.eventually.have.property('name_i18n', 'Grumman F2F');
+      ).resolves.toHaveProperty('name_i18n', 'Grumman F2F');
     });
 
     it('finds planes by partial name match', function () {
       return expect(
         client.encyclopedia.findPlane('p-40'),
-      ).to.eventually.have.property('name_i18n', 'Curtiss P-40 Warhawk');
+      ).resolves.toHaveProperty('name_i18n', 'Curtiss P-40 Warhawk');
     });
 
     it('throws for invalid identifier types', function () {
       return expect(
-        client.encyclopedia.findPlane({}).catch((error) => error),
-      ).to.eventually.be.instanceof(Error);
+        client.encyclopedia.findPlane({} as string),
+      ).rejects.toBeInstanceOf(Error);
     });
   });
 });

@@ -3,6 +3,10 @@ import ClientModule from '../ClientModule.ts';
 import { localize, resolveEntry } from '../mixins/Encyclopedia.ts';
 import type BaseClient from '../../clients/BaseClient';
 
+type Ship = {
+  //TODO
+};
+
 /**
  * @classdesc Module for the World of Warships Encyclopedia endpoint.
  * @extends ClientModule
@@ -38,7 +42,7 @@ class Encyclopedia extends ClientModule {
    *   matched ship, or `null` if no ships were matched.
    */
   findShip(identifier: number | string): Promise<object | null> {
-    return resolveEntry.call(this, {
+    return (resolveEntry<string, Ship>).call(this, {
       identifier,
       indexEndpoint: 'encyclopedia/ships',
       dataEndpoint: 'encyclopedia/ships',
@@ -54,8 +58,8 @@ class Encyclopedia extends ClientModule {
    * @returns {Promise.<(string|undefined), Error>} Promise resolving to the
    *   translated slug, or `undefined` if it couldn't be translated.
    */
-  localizeShipType(slug: string): Promise<string | undefined> {
-    return localize.call(this, {
+  localizeShipType(slug: string): Promise<string | null> {
+    return (localize<string>).call(this, {
       method: 'encyclopedia/info',
       type: 'ship_types',
       slug,
@@ -68,8 +72,8 @@ class Encyclopedia extends ClientModule {
    * @returns {Promise.<(string|undefined), Error>} Promise resolving to the
    *   translated slug, or `undefined` if it couldn't be translated.
    */
-  localizeLanguage(slug: string): Promise<string | undefined> {
-    return localize.call(this, {
+  localizeLanguage(slug: string): Promise<string | null> {
+    return (localize<string>).call(this, {
       method: 'encyclopedia/info',
       type: 'languages',
       slug,
@@ -82,8 +86,8 @@ class Encyclopedia extends ClientModule {
    * @returns {Promise.<(string|undefined), Error>} Promise resolving to the
    *   translated slug, or `undefined` if it couldn't be translated.
    */
-  localizeShipModification(slug: string): Promise<string | undefined> {
-    return localize.call(this, {
+  localizeShipModification(slug: string): Promise<string | null> {
+    return (localize<string>).call(this, {
       method: 'encyclopedia/info',
       type: 'ship_modifications',
       slug,
@@ -96,8 +100,8 @@ class Encyclopedia extends ClientModule {
    * @returns {Promise.<(string|undefined), Error>} Promise resolving to the
    *   translated slug, or `undefined` if it couldn't be translated.
    */
-  localizeShipModule(slug: string): Promise<string | undefined> {
-    return localize.call(this, {
+  localizeShipModule(slug: string): Promise<string | null> {
+    return (localize<string>).call(this, {
       method: 'encyclopedia/info',
       type: 'ship_modules',
       slug,
@@ -110,8 +114,8 @@ class Encyclopedia extends ClientModule {
    * @returns {Promise.<(string|undefined), Error>} Promise resolving to the
    *   translated slug, or `undefined` if it couldn't be translated.
    */
-  localizeShipNation(slug: string): Promise<string | undefined> {
-    return localize.call(this, {
+  localizeShipNation(slug: string): Promise<string | null> {
+    return (localize<string>).call(this, {
       method: 'encyclopedia/info',
       type: 'ship_nations',
       slug,

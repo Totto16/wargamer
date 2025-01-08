@@ -156,13 +156,15 @@ describe('BaseClient', function () {
       });
 
       it('normalizes parameter values as needed', function () {
-        const mapSearchIdAndNameOnly = client.get('encyclopedia/arenas', {
+        const mapSearchIdAndNameOnly = client.get<
+          Record<string, Record<string, unknown>>
+        >('encyclopedia/arenas', {
           fields: ['arena_id', 'name_i18n'],
         });
 
         return expect(
           mapSearchIdAndNameOnly.then(
-            (response) => response.data['05_prohorovka'],
+            (response) => response.data?.['05_prohorovka'],
           ),
         ).resolves.deep.equal({
           arena_id: '05_prohorovka',
@@ -178,7 +180,9 @@ describe('BaseClient', function () {
         applicationId: process.env.APPLICATION_ID,
       });
 
-      const accountListSearchBadApplicationId = client.get('account/list', {
+      const accountListSearchBadApplicationId = client.get<
+        Record<string, unknown>
+      >('account/list', {
         search: 'test',
         application_id: 'foo',
       });
@@ -191,7 +195,9 @@ describe('BaseClient', function () {
 
       it('rejects with an INVALID_APPLICATION_ID error when given a bad application ID', function () {
         return expect(
-          accountListSearchBadApplicationId.then((error) => error.apiMessage),
+          accountListSearchBadApplicationId.catch(
+            (error: APIError<unknown>) => error.apiMessage,
+          ),
         ).resolves.toEqual('INVALID_APPLICATION_ID');
       });
 

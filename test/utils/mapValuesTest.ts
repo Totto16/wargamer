@@ -5,7 +5,7 @@ describe('mapValues()', function () {
   it('maps object values correctly', function () {
     expect(mapValues({})).to.deep.equal({});
 
-    expect(mapValues({ foo: 'bar' }, (value) => '')).to.deep.equal({
+    expect(mapValues({ foo: 'bar' }, (_value) => '')).to.deep.equal({
       foo: '',
     });
 

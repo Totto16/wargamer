@@ -1,6 +1,10 @@
 import Fuse from 'fuse.js';
 import ClientModule from '../ClientModule.ts';
-import { localize, resolveEntry } from '../mixins/Encyclopedia.ts';
+import {
+  localize,
+  resolveEntry,
+  type Section,
+} from '../mixins/Encyclopedia.ts';
 import type BaseClient from '../../clients/BaseClient';
 
 /**
@@ -41,7 +45,7 @@ class Tankopedia extends ClientModule {
   findVehicle(
     identifier: number | string,
   ): Promise<Record<string, unknown> | null> {
-    return resolveEntry.call(this, {
+    return (resolveEntry<string, Record<string, unknown>>).call(this, {
       identifier,
       indexEndpoint: 'encyclopedia/vehicles',
       dataEndpoint: 'encyclopedia/vehicles',
@@ -58,16 +62,14 @@ class Tankopedia extends ClientModule {
    * @returns {Promise.<(string|undefined), Error>} Promise resolving to the
    *   translated slug, or `undefined` if it couldn't be translated.
    */
-  localizeAchievementSection(slug: string): Promise<string | undefined> {
-    return localize
+  localizeAchievementSection(slug: string): Promise<string | null> {
+    return (localize<Section>)
       .call(this, {
         method: 'encyclopedia/info',
         type: 'achievement_sections',
         slug,
       })
-      .then(
-        (section: undefined | { name?: string }) => section && section.name,
-      );
+      .then((section) => section && section.name);
   }
 
   /**
@@ -76,8 +78,8 @@ class Tankopedia extends ClientModule {
    * @returns {Promise.<(string|undefined), Error>} Promise resolving to the
    *   translated slug, or `undefined` if it couldn't be translated.
    */
-  localizeVehicleType(slug: string): Promise<string | undefined> {
-    return localize.call(this, {
+  localizeVehicleType(slug: string): Promise<string | null> {
+    return (localize<string>).call(this, {
       method: 'encyclopedia/info',
       type: 'vehicle_types',
       slug,
@@ -90,8 +92,8 @@ class Tankopedia extends ClientModule {
    * @returns {Promise.<(string|undefined), Error>} Promise resolving to the
    *   translated slug, or `undefined` if it couldn't be translated.
    */
-  localizeVehicleNation(slug: string): Promise<string | undefined> {
-    return localize.call(this, {
+  localizeVehicleNation(slug: string): Promise<string | null> {
+    return (localize<string>).call(this, {
       method: 'encyclopedia/info',
       type: 'vehicle_nations',
       slug,
