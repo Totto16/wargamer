@@ -1,3 +1,4 @@
+import type BaseClient from '../../clients/BaseClient'
 import ClientModule from '../ClientModule'
 
 /**
@@ -9,7 +10,7 @@ class Authentication extends ClientModule {
      * Constructor.
      * @param {BaseClient} client - The API client this module belongs to.
      */
-    constructor(client) {
+    constructor(client: BaseClient) {
         super(client, 'authentication')
     }
 
@@ -31,12 +32,17 @@ class Authentication extends ClientModule {
         }
 
         return this.client
-            .post(
+            .post<{ access_token: string }>(
                 'auth/prolongate',
                 {},
                 { type: this.client.type === 'wotx' ? 'wotx' : 'wot' }
             )
             .then((response) => {
+                if (!response.data) {
+                    //TODO
+                    throw new Error('TODO')
+                }
+
                 this.client.accessToken = response.data.access_token
 
                 return response

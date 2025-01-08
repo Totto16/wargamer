@@ -114,7 +114,7 @@ class BaseClient {
     /**
      * The type of API this client is for.
      */
-    private type: APIType
+    readonly type: APIType
 
     /**
      * The realm, i.e. region of this client.
@@ -129,7 +129,7 @@ class BaseClient {
     /**
      * The access token for this client.
      */
-    private accessToken: string | null
+    accessToken: string | null
 
     /**
      * The default localization language for this client.
