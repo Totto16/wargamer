@@ -4,7 +4,7 @@ import path from 'path'
 import webpack from 'webpack'
 
 const common = {
-    entry: './src/index.js',
+    entry: './src/index.ts',
     output: {
         library: 'Wargamer',
         libraryTarget: 'umd',
@@ -14,7 +14,7 @@ const common = {
     module: {
         rules: [
             {
-                test: /\.js$/,
+                test: /\.ts$/,
                 loader: 'babel-loader',
                 exclude: /node_modules/,
                 query: {
@@ -32,7 +32,7 @@ const common = {
                 },
             },
             {
-                test: /\.js$/,
+                test: /\.ts$/,
                 use: 'eslint-loader',
                 exclude: /node_modules/,
             },
