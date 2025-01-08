@@ -38,19 +38,20 @@
         "url": "git+https://github.com/hkwu/wargamer.git"
     },
     "scripts": {
-        "build": "babel src --out-dir lib",
-        "build:umd": "webpack --env.target=dev && webpack --env.target=prod",
-        "watch": "babel --watch src --out-dir lib",
+        "build": "tsup",
+        "dev": "tsup --watch",
+        "test": "vitest run",
+        "test:watch": "vitest",
         "lint": "eslint src",
-        "lint:fix": "eslint src --fix",
-        "test": "mocha --require babel-register --recursive",
-        "prepublishOnly": "npm test && npm run build && npm run build:umd"
+        "lint:fix": "eslint src --fix"
     },
     "dependencies": {
         "es6-error": "^4.1.1",
         "fuse.js": "^7.0.0",
         "stale-lru-cache": "^5.1.1",
-        "superagent": "^10.1.1"
+        "superagent": "^10.1.1",
+        "tsup": "^8.3.5",
+        "vitest": "^2.1.8"
     },
     "devDependencies": {
         "@eslint/eslintrc": "^3.2.0",
