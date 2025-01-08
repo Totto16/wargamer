@@ -32,7 +32,9 @@ class Authentication extends ClientModule {
         }
 
         return this.client
-            .post<{ access_token: string }>(
+            .post<{
+                access_token: string
+            }>(
                 'auth/prolongate',
                 {},
                 { type: this.client.type === 'wotx' ? 'wotx' : 'wot' }

@@ -1,4 +1,4 @@
-import { Fuse } from 'fuse.js'
+import Fuse from 'fuse.js'
 import ClientModule from '../ClientModule'
 import { resolveEntry } from '../mixins/Encyclopedia'
 import type BaseClient from '../../clients/BaseClient'
@@ -8,7 +8,7 @@ import type BaseClient from '../../clients/BaseClient'
  * @extends ClientModule
  */
 class Encyclopedia extends ClientModule {
-    private fuse: Fuse
+    private fuse: Fuse<string>
 
     /**
      * Constructor.

@@ -205,7 +205,7 @@ class BaseClient {
      * @returns {*} The normalized parameter.
      */
     static normalizeParameterValue<
-        T extends string | Array<unknown> | Date | null
+        T extends string | Array<unknown> | Date | null,
     >(parameter: T): string | null {
         if (Array.isArray(parameter)) {
             return parameter.join(',')
@@ -302,7 +302,7 @@ class BaseClient {
             )
 
             // compute information for the cache
-            const { application_id, ...rest } = normalizedPayload // eslint-disable-line no-unused-vars
+            const { application_id, ...rest } = normalizedPayload // eslint-disable-line no-unused-vars  @typescript-eslint/no-unused-vars
             const cacheKey = hashCode(
                 `${requestUrl}${JSON.stringify(sortObjectByKey(rest))}`
             )
@@ -379,7 +379,7 @@ class BaseClient {
                     .then(fulfillResponse<T>)
                     .then((apiResponse: APIResponse<T>): APIResponse<T> => {
                         this.cache.set(cacheKey, apiResponse.body, {
-                            revalidate: (key, callback) => {
+                            revalidate: (_key, callback) => {
                                 this.request(apiMethod, params, options)
                                     .then((revalidateResponse) => {
                                         callback(null, revalidateResponse.body)

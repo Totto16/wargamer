@@ -1,4 +1,4 @@
-import { Fuse } from 'fuse.js'
+import Fuse from 'fuse.js'
 import ClientModule from '../ClientModule'
 import {
     extractTopModules,
@@ -20,11 +20,11 @@ const MODULE_ID_FIELDS: Record<string, string> = {
 }
 
 type SingleVehicleData = {
-    modules_tree: null // TODO
+    modules_tree: Record<string, unknown>
 }
 
 type VehicleModule = {
-    module_id: string // TODO
+    module_id: string
 }
 
 type VehicleData = {
@@ -36,7 +36,7 @@ type VehicleData = {
  * @extends ClientModule
  */
 class Tankopedia extends ClientModule {
-    private fuse: Fuse
+    private fuse: Fuse<string>
 
     /**
      * Constructor.
@@ -107,7 +107,9 @@ class Tankopedia extends ClientModule {
                 .then(
                     (
                         vehicleData: SingleVehicleData | null
-                    ): Promise<APIResponse<Record<string, unknown>>> | null => {
+                    ): Promise<
+                        APIResponse<Record<string, VehicleData>>
+                    > | null => {
                         if (!vehicleData) {
                             return null
                         }
@@ -140,7 +142,7 @@ class Tankopedia extends ClientModule {
                             {} as Record<string, unknown>
                         )
 
-                        return this.client.get<Record<string, unknown>>(
+                        return this.client.get<Record<string, VehicleData>>(
                             'encyclopedia/vehicleprofile',
                             {
                                 ...queryFields,
@@ -150,7 +152,7 @@ class Tankopedia extends ClientModule {
                     }
                 )
                 .then(
-                    (result) =>
+                    (result): Record<string, unknown> | null =>
                         (result && result.data && result.data[vehicleId]) ??
                         null
                 )
