@@ -1,111 +1,117 @@
-import Fuse from 'fuse.js';
-import ClientModule from '../ClientModule';
-import { localize, resolveEntry } from '../mixins/Encyclopedia';
+import { Fuse } from "fuse.js"
+import ClientModule from "../ClientModule"
+import { localize, resolveEntry } from "../mixins/Encyclopedia"
+import type BaseClient from "../../clients/BaseClient"
 
 /**
  * @classdesc Module for the World of Tanks Blitz Tankopedia endpoint.
  * @extends ClientModule
  */
 class Tankopedia extends ClientModule {
-  /**
-   * Constructor.
-   * @param {BaseClient} client - The API client this module belongs to.
-   */
-  constructor(client) {
-    super(client, 'tankopedia');
+	private fuse: Fuse
 
-    /**
-     * The module's Fuse object.
-     * @type {Fuse}
-     * @private
-     */
-    this.fuse = new Fuse([], {
-      keys: [
-        'name',
-      ],
-    });
-  }
+	/**
+	 * Constructor.
+	 * @param {BaseClient} client - The API client this module belongs to.
+	 */
+	constructor(client: BaseClient) {
+		super(client, "tankopedia")
 
-  /**
-   * Searches for a vehicle by name or ID and returns its entry from the
-   *   `encyclopedia/vehicles` endpoint.
-   * @param {(number|string)} identifier - The vehicle identifier to use for
-   *   lookup.
-   * If a number is supplied, it is treated as the vehicle's ID.
-   * If a string is supplied, the identifier is matched against vehicle names
-   *   with the closest match being selected.
-   * @returns {Promise.<?Object, Error>} A promise resolving to the data for the
-   *   matched vehicle, or `null` if no vehicles were matched.
-   */
-  findVehicle(identifier) {
-    return resolveEntry.call(this, {
-      identifier,
-      indexEndpoint: 'encyclopedia/vehicles',
-      dataEndpoint: 'encyclopedia/vehicles',
-      identifierKey: 'tank_id',
-      fuse: this.fuse,
-      searchFields: [
-        'name',
-      ],
-    });
-  }
+		/**
+		 * The module's Fuse object.
+		 * @type {Fuse}
+		 * @private
+		 */
+		this.fuse = new Fuse([], {
+			keys: ["name"],
+		})
+	}
 
-  /**
-   * Localizes a language slug.
-   * @param {string} slug - The slug.
-   * @returns {Promise.<(string|undefined), Error>} Promise resolving to the
-   *   translated slug, or `undefined` if it couldn't be translated.
-   */
-  localizeLanguage(slug) {
-    return localize.call(this, {
-      method: 'encyclopedia/info',
-      type: 'languages',
-      slug,
-    });
-  }
+	/**
+	 * Searches for a vehicle by name or ID and returns its entry from the
+	 *   `encyclopedia/vehicles` endpoint.
+	 * @param {(number|string)} identifier - The vehicle identifier to use for
+	 *   lookup.
+	 * If a number is supplied, it is treated as the vehicle's ID.
+	 * If a string is supplied, the identifier is matched against vehicle names
+	 *   with the closest match being selected.
+	 * @returns {Promise.<?Object, Error>} A promise resolving to the data for the
+	 *   matched vehicle, or `null` if no vehicles were matched.
+	 */
+	findVehicle(
+		identifier: number | string
+	): Promise<Record<string, unknown> | null> {
+		return resolveEntry.call(this, {
+			identifier,
+			indexEndpoint: "encyclopedia/vehicles",
+			dataEndpoint: "encyclopedia/vehicles",
+			identifierKey: "tank_id",
+			fuse: this.fuse,
+			searchFields: ["name"],
+		})
+	}
 
-  /**
-   * Localizes an achievement section slug. The returned value is the section's
-   *   name.
-   * @param {string} slug - The slug.
-   * @returns {Promise.<(string|undefined), Error>} Promise resolving to the
-   *   translated slug, or `undefined` if it couldn't be translated.
-   */
-  localizeAchievementSection(slug) {
-    return localize.call(this, {
-      method: 'encyclopedia/info',
-      type: 'achievement_sections',
-      slug,
-    }).then(section => section && section.name);
-  }
+	/**
+	 * Localizes a language slug.
+	 * @param {string} slug - The slug.
+	 * @returns {Promise.<(string|undefined), Error>} Promise resolving to the
+	 *   translated slug, or `undefined` if it couldn't be translated.
+	 */
+	localizeLanguage(slug: string): Promise<string | undefined> {
+		return localize.call(this, {
+			method: "encyclopedia/info",
+			type: "languages",
+			slug,
+		})
+	}
 
-  /**
-   * Localizes a vehicle type slug.
-   * @param {string} slug - The slug.
-   * @returns {Promise.<(string|undefined), Error>} Promise resolving to the
-   *   translated slug, or `undefined` if it couldn't be translated.
-   */
-  localizeVehicleType(slug) {
-    return localize.call(this, {
-      method: 'encyclopedia/info',
-      type: 'vehicle_types',
-      slug,
-    });
-  }
+	/**
+	 * Localizes an achievement section slug. The returned value is the section's
+	 *   name.
+	 * @param {string} slug - The slug.
+	 * @returns {Promise.<(string|undefined), Error>} Promise resolving to the
+	 *   translated slug, or `undefined` if it couldn't be translated.
+	 */
+	localizeAchievementSection(slug: string): Promise<string | undefined> {
+		return localize
+			.call(this, {
+				method: "encyclopedia/info",
+				type: "achievement_sections",
+				slug,
+			})
+			.then(
+				(section: undefined | { name?: string }) =>
+					section && section.name
+			)
+	}
 
-  /**
-   * Localizes a vehicle nation slug.
-   * @param {string} slug - The slug.
-   * @returns {Promise.<(string|undefined), Error>} Promise resolving to the
-   *   translated slug, or `undefined` if it couldn't be translated.
-   */
-  localizeVehicleNation(slug) {
-    return localize.call(this, {
-      method: 'encyclopedia/info',
-      type: 'vehicle_nations',
-      slug,
-    });
-  }
+	/**
+	 * Localizes a vehicle type slug.
+	 * @param {string} slug - The slug.
+	 * @returns {Promise.<(string|undefined), Error>} Promise resolving to the
+	 *   translated slug, or `undefined` if it couldn't be translated.
+	 */
+	localizeVehicleType(slug: string): Promise<string | undefined> {
+		return localize.call(this, {
+			method: "encyclopedia/info",
+			type: "vehicle_types",
+			slug,
+		})
+	}
+
+	/**
+	 * Localizes a vehicle nation slug.
+	 * @param {string} slug - The slug.
+	 * @returns {Promise.<(string|undefined), Error>} Promise resolving to the
+	 *   translated slug, or `undefined` if it couldn't be translated.
+	 */
+	localizeVehicleNation(slug: string): Promise<string | undefined> {
+		return localize.call(this, {
+			method: "encyclopedia/info",
+			type: "vehicle_nations",
+			slug,
+		})
+	}
 }
 
-export default Tankopedia;
+export default Tankopedia

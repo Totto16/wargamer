@@ -5,11 +5,16 @@
  * @returns {Object} The sorted object.
  * @private
  */
-export default function sortObjectByKey(object) {
-  return Object.keys(object)
-    .sort()
-    .reduce((built, next) => ({
-      ...built,
-      [next]: object[next],
-    }), {});
+export default function sortObjectByKey<
+	T extends Record<string, unknown> = Record<string, unknown>
+>(object: T): T {
+	return Object.keys(object)
+		.sort()
+		.reduce(
+			(built, next) => ({
+				...built,
+				[next]: object[next],
+			}),
+			{} as T
+		)
 }

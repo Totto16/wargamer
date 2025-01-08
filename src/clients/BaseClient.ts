@@ -224,12 +224,12 @@ class BaseClient {
 	 * @returns {Promise.<APIResponse, Error>} Returns a promise resolving to the
 	 *   returned API data, or rejecting with an error.
 	 */
-	get(
+	get<T = unknown>(
 		method: string,
 		params: Record<string, unknown> = {},
 		options: Partial<BaseClientOptions> = {}
-	): Promise<unknown> {
-		return this.request(method, params, { ...options, method: "GET" })
+	): Promise<APIResponse<T>> {
+		return this.request<T>(method, params, { ...options, method: "GET" })
 	}
 
 	/**
@@ -240,12 +240,12 @@ class BaseClient {
 	 * @returns {Promise.<APIResponse, Error>} Returns a promise resolving to the
 	 *   returned API data, or rejecting with an error.
 	 */
-	post(
+	post<T = unknown>(
 		method: string,
 		params: Record<string, unknown> = {},
 		options: Partial<BaseClientOptions> = {}
-	): Promise<unknown> {
-		return this.request(method, params, { ...options, method: "POST" })
+	): Promise<APIResponse<T>> {
+		return this.request<T>(method, params, { ...options, method: "POST" })
 	}
 
 	/**
@@ -257,12 +257,12 @@ class BaseClient {
 	 *   returned API data, or rejecting with an error.
 	 * @private
 	 */
-	request(
+	request<T>(
 		apiMethod: string,
 		params: Record<string, unknown> = {},
 		options: Partial<BaseClientOptions> &
 			Partial<AdditionalRequestOptions> = {}
-	): Promise<unknown> {
+	): Promise<APIResponse<T>> {
 		return new Promise((resolve) => {
 			const {
 				type = this.type,
