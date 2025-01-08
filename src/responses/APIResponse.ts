@@ -17,13 +17,13 @@ export type ResponseBody<D = Record<string, unknown>> = {
  * @classdesc Wraps a response from the Wargaming API.
  */
 class APIResponse<T> {
-    private client: BaseClient
+    readonly client: BaseClient
 
-    private requestRealm: RealmOrRegionString
+    readonly requestRealm: RealmOrRegionString
 
-    private method: string
+    readonly method: string
 
-    private body: ResponseBody<T>
+    readonly body: ResponseBody<T>
 
     /**
      * Constructor.

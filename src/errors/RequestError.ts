@@ -1,10 +1,20 @@
 import ExtendableError from 'es6-error'
+import type BaseClient from '../clients/BaseClient'
+
+export type RequestErrorOptions = {
+    message?: string
+    client: BaseClient
+    statusCode: number
+}
 
 /**
  * @classdesc Generic API client error encountered during requests.
  * @extends ExtendableError
  */
 class RequestError extends ExtendableError {
+    readonly client: BaseClient
+    readonly statusCode: number
+
     /**
      * Constructor.
      * @param {Object} options - The constructor options.
@@ -13,7 +23,7 @@ class RequestError extends ExtendableError {
      *   from.
      * @param {number} options.statusCode - The HTTP status code of the request.
      */
-    constructor({ message, client, statusCode }) {
+    constructor({ message, client, statusCode }: RequestErrorOptions) {
         super(message)
 
         /**

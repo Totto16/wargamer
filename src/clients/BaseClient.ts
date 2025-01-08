@@ -1,6 +1,6 @@
 import Cache from 'stale-lru-cache'
 import request from 'superagent'
-import APIError from '../errors/APIError'
+import APIError, { type WargamingAPIError } from '../errors/APIError'
 import APIResponse from '../responses/APIResponse'
 import Authentication from '../modules/common/Authentication'
 import RequestError from '../errors/RequestError'
@@ -205,7 +205,7 @@ class BaseClient {
      * @returns {*} The normalized parameter.
      */
     static normalizeParameterValue<
-        T extends string | Array<unknown> | Date | null,
+        T extends string | Array<unknown> | Date | null
     >(parameter: T): string | null {
         if (Array.isArray(parameter)) {
             return parameter.join(',')
@@ -307,7 +307,7 @@ class BaseClient {
                 `${requestUrl}${JSON.stringify(sortObjectByKey(rest))}`
             )
 
-            const fulfillResponse = (response: Response) => {
+            const fulfillResponse = <T>(response: Response): APIResponse<T> => {
                 const { error = null } = response.body
 
                 if (error) {
@@ -328,12 +328,26 @@ class BaseClient {
                 })
             }
 
-            const rejectResponse = (value) => {
+            const rejectResponse = (
+                value:
+                    | Error
+                    | RequestError
+                    | ({
+                          response: {
+                              error: WargamingAPIError & { status: number }
+                          }
+                      } & {
+                          body: {
+                              error: WargamingAPIError
+                          }
+                      })
+            ) => {
                 // check if this is a HTTP error or a Wargaming error
                 if (value instanceof Error) {
                     throw value
                 }
 
+                //TODO: this isn't typed correctly
                 const {
                     response: { error },
                 } = value
@@ -349,7 +363,7 @@ class BaseClient {
                 const cached = this.cache.get(cacheKey)
 
                 if (cached) {
-                    const response = new APIResponse({
+                    const response: APIResponse<T> = new APIResponse<T>({
                         client: this,
                         requestRealm: normalizedRealm,
                         method: normalizedApiMethod,
@@ -359,11 +373,11 @@ class BaseClient {
                     resolve(response)
                 }
 
-                const promise = request
+                const promise: Promise<APIResponse<T>> = request
                     .get(requestUrl)
                     .query(normalizedPayload)
-                    .then(fulfillResponse)
-                    .then((apiResponse) => {
+                    .then(fulfillResponse<T>)
+                    .then((apiResponse: APIResponse<T>): APIResponse<T> => {
                         this.cache.set(cacheKey, apiResponse.body, {
                             revalidate: (key, callback) => {
                                 this.request(apiMethod, params, options)
@@ -380,11 +394,11 @@ class BaseClient {
 
                 resolve(promise)
             } else if (method === 'POST') {
-                const promise = request
+                const promise: Promise<APIResponse<T>> = request
                     .post(requestUrl)
                     .type('form')
                     .send(normalizedPayload)
-                    .then(fulfillResponse)
+                    .then(fulfillResponse<T>)
                     .catch(rejectResponse)
 
                 resolve(promise)

@@ -1,4 +1,5 @@
-import RequestError from './RequestError'
+import type BaseClient from '../clients/BaseClient'
+import RequestError, { type RequestErrorOptions } from './RequestError'
 
 /**
  * The error object returned from Wargaming API methods.
@@ -7,14 +8,40 @@ import RequestError from './RequestError'
  * @property {string} message - The wargaming API error message.
  * @property {string} field - The Wargaming API error field.
  * @property {*} value - The Wargaming API error field value.
- * @private
  */
+export type WargamingAPIError<D = Record<string, unknown>> = {
+    code: number
+    message: string
+    field: string
+    value: D
+}
+
+/**
+ * Constructor.
+ */
+interface APIErrorOptions<D = Record<string, unknown>>
+    extends RequestErrorOptions {
+    client: BaseClient
+    statusCode: number
+    url?: string
+    requestRealm?: string
+    method: string
+    error: WargamingAPIError<D>
+}
 
 /**
  * @classdesc Error received from Wargaming's API.
  * @extends RequestError
  */
-class APIError extends RequestError {
+class APIError<D> extends RequestError {
+    readonly requestRealm?: string | undefined
+    readonly method: string
+
+    readonly code: number
+    readonly apiMessage: string
+    readonly field: string
+    readonly value: D
+
     /**
      * Constructor.
      * @param {Object} options - The constructor options.
@@ -28,7 +55,7 @@ class APIError extends RequestError {
      * @param {WargamingAPIError} options.error - The error object returned from
      *   the API.
      */
-    constructor({ requestRealm, method, error, ...rest }) {
+    constructor({ requestRealm, method, error, ...rest }: APIErrorOptions<D>) {
         const { code, message, field, value } = error
 
         super({
