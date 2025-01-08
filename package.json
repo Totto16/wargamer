@@ -48,7 +48,6 @@
         "prettier": "prettier -w ."
     },
     "dependencies": {
-        "es6-error": "^4.1.1",
         "fuse.js": "^7.0.0",
         "stale-lru-cache": "^5.1.1",
         "superagent": "^10.1.1"
