@@ -1,84 +1,84 @@
-import type BaseClient from '../../clients/BaseClient'
-import ClientModule from '../ClientModule'
+import type BaseClient from '../../clients/BaseClient';
+import ClientModule from '../ClientModule.ts';
 
 /**
  * @classdesc Module for Authentication endpoints.
  * @extends ClientModule
  */
 class Authentication extends ClientModule {
-    /**
-     * Constructor.
-     * @param {BaseClient} client - The API client this module belongs to.
-     */
-    constructor(client: BaseClient) {
-        super(client, 'authentication')
+  /**
+   * Constructor.
+   * @param {BaseClient} client - The API client this module belongs to.
+   */
+  constructor(client: BaseClient) {
+    super(client, 'authentication');
+  }
+
+  /**
+   * Sends a request to renew the client's access token. Upon a successful
+   *   request, the client's current access token will be updated with the
+   *   returned token.
+   * @returns {Promise.<APIResponse, Error>} Returns the same value as a normal
+   *   request if the client's access token is defined, else rejects with a
+   *   plain `Error`.
+   */
+  renewAccessToken() {
+    if (!this.client.accessToken) {
+      return Promise.reject(
+        new Error(
+          "Failed to renew access token: client's access token is not set.",
+        ),
+      );
     }
 
-    /**
-     * Sends a request to renew the client's access token. Upon a successful
-     *   request, the client's current access token will be updated with the
-     *   returned token.
-     * @returns {Promise.<APIResponse, Error>} Returns the same value as a normal
-     *   request if the client's access token is defined, else rejects with a
-     *   plain `Error`.
-     */
-    renewAccessToken() {
-        if (!this.client.accessToken) {
-            return Promise.reject(
-                new Error(
-                    "Failed to renew access token: client's access token is not set."
-                )
-            )
+    return this.client
+      .post<{
+        access_token: string;
+      }>(
+        'auth/prolongate',
+        {},
+        { type: this.client.type === 'wotx' ? 'wotx' : 'wot' },
+      )
+      .then((response) => {
+        if (!response.data) {
+          // TODO
+          throw new Error('TODO');
         }
 
-        return this.client
-            .post<{
-                access_token: string
-            }>(
-                'auth/prolongate',
-                {},
-                { type: this.client.type === 'wotx' ? 'wotx' : 'wot' }
-            )
-            .then((response) => {
-                if (!response.data) {
-                    //TODO
-                    throw new Error('TODO')
-                }
+        this.client.accessToken = response.data.access_token;
 
-                this.client.accessToken = response.data.access_token
+        return response;
+      });
+  }
 
-                return response
-            })
+  /**
+   * Sends a request to invalidate the client's access token. Upon a successful
+   *   request, the client's current access token will be set to `null`.
+   * @returns {Promise.<APIResponse, Error>} Returns the same value as a normal
+   *   request if the client's access token is defined, else rejects with a
+   *   plain `Error`.
+   */
+  destroyAccessToken() {
+    if (!this.client.accessToken) {
+      return Promise.reject(
+        new Error(
+          "Failed to invalidate access token: client's access token is not set.",
+        ),
+      );
     }
 
-    /**
-     * Sends a request to invalidate the client's access token. Upon a successful
-     *   request, the client's current access token will be set to `null`.
-     * @returns {Promise.<APIResponse, Error>} Returns the same value as a normal
-     *   request if the client's access token is defined, else rejects with a
-     *   plain `Error`.
-     */
-    destroyAccessToken() {
-        if (!this.client.accessToken) {
-            return Promise.reject(
-                new Error(
-                    "Failed to invalidate access token: client's access token is not set."
-                )
-            )
-        }
+    return this.client
+      .post(
+        'auth/logout',
+        {},
+        { type: this.client.type === 'wotx' ? 'wotx' : 'wot' },
+      )
+      .then((response) => {
+        this.client.accessToken = null;
 
-        return this.client
-            .post(
-                'auth/logout',
-                {},
-                { type: this.client.type === 'wotx' ? 'wotx' : 'wot' }
-            )
-            .then((response) => {
-                this.client.accessToken = null
-
-                return response
-            })
-    }
+        return response;
+      });
+  }
 }
 
-export default Authentication
+export default Authentication;

@@ -5,18 +5,18 @@
  * @private
  */
 export default function hashCode(string: string): string {
-    let hash = 0
+  let hash = 0;
 
-    if (!string.length) {
-        return hash.toString()
-    }
+  if (!string.length) {
+    return hash.toString();
+  }
 
-    for (let i = 0; i < string.length; ++i) {
-        const char = string.charCodeAt(i)
+  for (let i = 0; i < string.length; ++i) {
+    const char = string.charCodeAt(i);
 
-        hash = (hash << 5) - hash + char
-        hash &= hash
-    }
+    hash = (hash << 5) - hash + char;
+    hash &= hash;
+  }
 
-    return hash.toString()
+  return hash.toString();
 }

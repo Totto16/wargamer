@@ -1,26 +1,26 @@
-import Accounts from '../modules/common/Accounts'
-import BaseClient, { type ClientOptions } from './BaseClient'
+import Accounts from '../modules/common/Accounts.ts';
+import BaseClient, { type ClientOptions } from './BaseClient.ts';
 
 /**
  * @classdesc The Wargaming.net API client.
  * @extends BaseClient
  */
 class Wargaming extends BaseClient {
-    readonly accounts: Accounts
+  readonly accounts: Accounts;
+
+  /**
+   * Constructor.
+   * @param {ClientOptions} options - The client options.
+   */
+  constructor(options: ClientOptions) {
+    super({ ...options, type: 'wgn' });
 
     /**
-     * Constructor.
-     * @param {ClientOptions} options - The client options.
+     * The client's Accounts module.
+     * @type {Accounts}
      */
-    constructor(options: ClientOptions) {
-        super({ ...options, type: 'wgn' })
-
-        /**
-         * The client's Accounts module.
-         * @type {Accounts}
-         */
-        this.accounts = new Accounts(this)
-    }
+    this.accounts = new Accounts(this);
+  }
 }
 
-export default Wargaming
+export default Wargaming;

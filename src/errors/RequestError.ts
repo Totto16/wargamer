@@ -1,18 +1,19 @@
-import type BaseClient from '../clients/BaseClient'
+import type BaseClient from '../clients/BaseClient';
 
 export type RequestErrorOptions = {
-  message?: string
-  client: BaseClient
-  statusCode: number
-}
+  message?: string;
+  client: BaseClient;
+  statusCode: number;
+};
 
 /**
  * @classdesc Generic API client error encountered during requests.
  * @extends Error
  */
 class RequestError extends Error {
-  readonly client: BaseClient
-  readonly statusCode: number
+  readonly client: BaseClient;
+
+  readonly statusCode: number;
 
   /**
    * Constructor.
@@ -23,20 +24,20 @@ class RequestError extends Error {
    * @param {number} options.statusCode - The HTTP status code of the request.
    */
   constructor({ message, client, statusCode }: RequestErrorOptions) {
-    super(message)
+    super(message);
 
     /**
      * The API client that the error originated from.
      * @type {BaseClient}
      */
-    this.client = client
+    this.client = client;
 
     /**
      * The HTTP status code of the request.
      * @type {number}
      */
-    this.statusCode = statusCode
+    this.statusCode = statusCode;
   }
 }
 
-export default RequestError
+export default RequestError;

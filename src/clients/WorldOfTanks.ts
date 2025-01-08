@@ -1,34 +1,35 @@
-import Accounts from '../modules/common/Accounts'
-import BaseClient, { type ClientOptions } from './BaseClient'
-import Tankopedia from '../modules/WorldOfTanks/Tankopedia'
+import Accounts from '../modules/common/Accounts.ts';
+import BaseClient, { type ClientOptions } from './BaseClient.ts';
+import Tankopedia from '../modules/WorldOfTanks/Tankopedia.ts';
 
 /**
  * @classdesc The World of Tanks API client.
  * @extends BaseClient
  */
 class WorldOfTanks extends BaseClient {
-    readonly accounts: Accounts
-    readonly tankopedia: Tankopedia
+  readonly accounts: Accounts;
+
+  readonly tankopedia: Tankopedia;
+
+  /**
+   * Constructor.
+   * @param {ClientOptions} options - The client options.
+   */
+  constructor(options: ClientOptions) {
+    super({ ...options, type: 'wot' });
 
     /**
-     * Constructor.
-     * @param {ClientOptions} options - The client options.
+     * The client's Accounts module.
+     * @type {Accounts}
      */
-    constructor(options: ClientOptions) {
-        super({ ...options, type: 'wot' })
+    this.accounts = new Accounts(this);
 
-        /**
-         * The client's Accounts module.
-         * @type {Accounts}
-         */
-        this.accounts = new Accounts(this)
-
-        /**
-         * The client's Tankopedia module.
-         * @type {Tankopedia}
-         */
-        this.tankopedia = new Tankopedia(this)
-    }
+    /**
+     * The client's Tankopedia module.
+     * @type {Tankopedia}
+     */
+    this.tankopedia = new Tankopedia(this);
+  }
 }
 
-export default WorldOfTanks
+export default WorldOfTanks;

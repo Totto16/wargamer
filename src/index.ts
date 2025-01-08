@@ -1,18 +1,18 @@
-import Wargamer from './Wargamer'
-import WorldOfTanks from './clients/WorldOfTanks'
-import WorldOfTanksBlitz from './clients/WorldOfTanksBlitz'
-import WorldOfTanksConsole from './clients/WorldOfTanksConsole'
-import WorldOfWarships from './clients/WorldOfWarships'
-import WorldOfWarplanes from './clients/WorldOfWarplanes'
-import Wargaming from './clients/Wargaming'
+import Wargamer from './Wargamer.ts';
+import WorldOfTanks from './clients/WorldOfTanks.ts';
+import WorldOfTanksBlitz from './clients/WorldOfTanksBlitz.ts';
+import WorldOfTanksConsole from './clients/WorldOfTanksConsole.ts';
+import WorldOfWarships from './clients/WorldOfWarships.ts';
+import WorldOfWarplanes from './clients/WorldOfWarplanes.ts';
+import Wargaming from './clients/Wargaming.ts';
 
 export {
-    WorldOfTanks,
-    WorldOfTanksBlitz,
-    WorldOfTanksConsole,
-    WorldOfWarships,
-    WorldOfWarplanes,
-    Wargaming,
-}
+  WorldOfTanks,
+  WorldOfTanksBlitz,
+  WorldOfTanksConsole,
+  WorldOfWarships,
+  WorldOfWarplanes,
+  Wargaming,
+};
 
-export default Wargamer
+export default Wargamer;

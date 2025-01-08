@@ -1,16 +1,16 @@
-import type { Fuse } from 'fuse.js'
-import type ClientModule from '../ClientModule'
+import type { Fuse } from 'fuse.js';
+import type ClientModule from '../ClientModule';
 
 /**
  * Searches for an entry in the encyclopedia endpoint for an API.
  */
 interface ResolveEntryParams {
-    identifier: number | string
-    indexEndpoint: string
-    dataEndpoint: string
-    identifierKey: string
-    fuse: Fuse
-    searchFields: Array<string>
+  identifier: number | string;
+  indexEndpoint: string;
+  dataEndpoint: string;
+  identifierKey: string;
+  fuse: Fuse;
+  searchFields: Array<string>;
 }
 /**
  * @private
@@ -38,57 +38,58 @@ interface ResolveEntryParams {
  * @private
  */
 export const resolveEntry = function resolveEntry<T>(
-    this: ClientModule,
-    params: ResolveEntryParams
+  this: ClientModule,
+  params: ResolveEntryParams,
 ) {
-    const {
-        identifier,
-        indexEndpoint,
-        dataEndpoint,
-        identifierKey,
-        fuse,
-        searchFields,
-    } = params
+  const {
+    identifier,
+    indexEndpoint,
+    dataEndpoint,
+    identifierKey,
+    fuse,
+    searchFields,
+  } = params;
 
-    if (typeof identifier === 'number') {
-        return this.client
-            .get<Array<T>>(dataEndpoint, { [identifierKey]: identifier })
-            .then((response) => response.data && response.data[identifier])
-    } else if (typeof identifier === 'string') {
-        return this.client
-            .get(indexEndpoint, { fields: [...searchFields, identifierKey] })
-            .then((response) => {
-                const entries = response.data
+  if (typeof identifier === 'number') {
+    return this.client
+      .get<Array<T>>(dataEndpoint, { [identifierKey]: identifier })
+      .then((response) => response.data && response.data[identifier]);
+  }
+  if (typeof identifier === 'string') {
+    return this.client
+      .get(indexEndpoint, { fields: [...searchFields, identifierKey] })
+      .then((response) => {
+        const entries = response.data;
 
-                fuse.set(
-                    Object.keys(entries).reduce(
-                        (accumulated, next) => [...accumulated, entries[next]],
-                        []
-                    )
-                )
+        fuse.set(
+          Object.keys(entries).reduce(
+            (accumulated, next) => [...accumulated, entries[next]],
+            [],
+          ),
+        );
 
-                const results = fuse.search(identifier)
+        const results = fuse.search(identifier);
 
-                if (!results.length) {
-                    return null
-                }
+        if (!results.length) {
+          return null;
+        }
 
-                const [{ [identifierKey]: matchedId }] = results
+        const [{ [identifierKey]: matchedId }] = results;
 
-                return Promise.all([
-                    matchedId,
-                    this.client.get(dataEndpoint, {
-                        [identifierKey]: matchedId,
-                    }),
-                ])
-            })
-            .then(([matchedId, response]) => response.data[matchedId])
-    }
+        return Promise.all([
+          matchedId,
+          this.client.get(dataEndpoint, {
+            [identifierKey]: matchedId,
+          }),
+        ]);
+      })
+      .then(([matchedId, response]) => response.data[matchedId]);
+  }
 
-    return Promise.reject(
-        new TypeError('Expected a string or number as the entry identifier.')
-    )
-}
+  return Promise.reject(
+    new TypeError('Expected a string or number as the entry identifier.'),
+  );
+};
 
 /**
  * Extracts the top modules of each type from a given module tree. The modules
@@ -99,30 +100,32 @@ export const resolveEntry = function resolveEntry<T>(
  * @private
  */
 export const extractTopModules = function extractTopModules(
-    moduleTree: Record<string, unknown>
+  moduleTree: Record<string, unknown>,
 ) {
-    return Object.keys(moduleTree).reduce((topModules, moduleId) => {
-        const module = moduleTree[moduleId]
-        const { price_xp, type } = module
+  return Object.keys(moduleTree).reduce((topModules, moduleId) => {
+    const module = moduleTree[moduleId];
+    // eslint-disable-next-line camelcase
+    const { price_xp, type } = module;
 
-        if (!topModules[type] || price_xp > topModules[type].price_xp) {
-            return {
-                ...topModules,
-                [type]: module,
-            }
-        }
+    // eslint-disable-next-line camelcase
+    if (!topModules[type] || price_xp > topModules[type].price_xp) {
+      return {
+        ...topModules,
+        [type]: module,
+      };
+    }
 
-        return topModules
-    }, {})
-}
+    return topModules;
+  }, {});
+};
 
 /**
  * Localizes a slug using values returned from an API endpoint.
  */
 interface LocalizeParams {
-    method: string
-    type: string
-    slug: string
+  method: string;
+  type: string;
+  slug: string;
 }
 
 /**
@@ -137,16 +140,16 @@ interface LocalizeParams {
  * @private
  */
 export const localize = function localize(
-    this: ClientModule,
-    { method, type, slug }: LocalizeParams
+  this: ClientModule,
+  { method, type, slug }: LocalizeParams,
 ) {
-    return this.client.get(method, {}).then((response) => {
-        const translations = response.data[type]
+  return this.client.get(method, {}).then((response) => {
+    const translations = response.data[type];
 
-        if (!translations || typeof translations !== 'object') {
-            throw new Error(`Invalid translation type: ${type}.`)
-        }
+    if (!translations || typeof translations !== 'object') {
+      throw new Error(`Invalid translation type: ${type}.`);
+    }
 
-        return translations[slug]
-    })
-}
+    return translations[slug];
+  });
+};

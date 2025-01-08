@@ -1,8 +1,8 @@
 type MapCallbackFn<T extends Record<string, unknown>> = (
-    value: T[keyof T],
-    key: keyof T,
-    obj: T
-) => T[keyof T]
+  value: T[keyof T],
+  key: keyof T,
+  obj: T,
+) => T[keyof T];
 
 /**
  * Identical to `Array.prototype.map()` except for object values.
@@ -13,16 +13,16 @@ type MapCallbackFn<T extends Record<string, unknown>> = (
  * @private
  */
 export default function mapValues<T extends Record<string, unknown>>(
-    object: T,
-    callback: MapCallbackFn<T> = (value) => value
+  object: T,
+  callback: MapCallbackFn<T> = (value) => value,
 ): T {
-    const keys = Object.keys(object)
+  const keys = Object.keys(object);
 
-    return keys.reduce(
-        (mapped: T, nextKey: keyof T) => ({
-            ...mapped,
-            [nextKey]: callback(object[nextKey], nextKey, object),
-        }),
-        {} as T
-    )
+  return keys.reduce(
+    (mapped: T, nextKey: keyof T) => ({
+      ...mapped,
+      [nextKey]: callback(object[nextKey], nextKey, object),
+    }),
+    {} as T,
+  );
 }

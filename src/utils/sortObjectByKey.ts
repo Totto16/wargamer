@@ -6,15 +6,15 @@
  * @private
  */
 export default function sortObjectByKey<
-    T extends Record<string, unknown> = Record<string, unknown>,
+  T extends Record<string, unknown> = Record<string, unknown>,
 >(object: T): T {
-    return Object.keys(object)
-        .sort()
-        .reduce(
-            (built, next) => ({
-                ...built,
-                [next]: object[next],
-            }),
-            {} as T
-        )
+  return Object.keys(object)
+    .sort()
+    .reduce(
+      (built, next) => ({
+        ...built,
+        [next]: object[next],
+      }),
+      {} as T,
+    );
 }
