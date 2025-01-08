@@ -137,12 +137,12 @@ describe('BaseClient', function () {
         const accountListSearchRu = client.get(
           'account/list',
           { search: 'Straik' },
-          { realm: 'ru' },
+          { realm: 'na' },
         );
 
         return expect(
           accountListSearchRu.then((response) => response.requestRealm),
-        ).resolves.toEqual('ru');
+        ).resolves.toEqual('na');
       });
 
       it('trims method name slashes as needed', function () {

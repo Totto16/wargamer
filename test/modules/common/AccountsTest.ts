@@ -7,7 +7,7 @@ import type { SearchType } from '../../../src/modules/common/Accounts';
 describe('Accounts', function () {
   describe('World of Tanks', function () {
     const client = new WorldOfTanks({
-      realm: 'ru',
+      realm: 'na',
       applicationId: process.env.APPLICATION_ID,
     });
 

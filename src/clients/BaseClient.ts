@@ -9,7 +9,7 @@ import hashCode from '../utils/hashCode.ts';
 import mapValues from '../utils/mapValues.ts';
 import sortObjectByKey from '../utils/sortObjectByKey.ts';
 
-export type RegionString = 'ru' | 'eu' | 'na' | 'kr' | 'asia';
+export type RegionString = 'eu' | 'na' | 'asia';
 
 export type Realm = 'xbox' | 'ps4';
 
@@ -51,10 +51,8 @@ export type RequestOptions = {
  * Mapping between realms and their TLDs.
  */
 const REALM_TLD: Record<RealmOrRegionString, string> = {
-  ru: 'ru',
   eu: 'eu',
   na: 'com',
-  kr: 'kr',
   asia: 'asia',
   xbox: 'xbox',
   ps4: 'ps4',
