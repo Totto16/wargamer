@@ -1,360 +1,399 @@
-import Cache from 'stale-lru-cache';
-import request from 'superagent';
-import APIError from '../errors/APIError';
-import APIResponse from '../responses/APIResponse';
-import Authentication from '../modules/common/Authentication';
-import RequestError from '../errors/RequestError';
-import hashCode from '../utils/hashCode';
-import mapValues from '../utils/mapValues';
-import sortObjectByKey from '../utils/sortObjectByKey';
+import Cache from "stale-lru-cache"
+import request from "superagent"
+import APIError from "../errors/APIError"
+import APIResponse from "../responses/APIResponse"
+import Authentication from "../modules/common/Authentication"
+import RequestError from "../errors/RequestError"
+import hashCode from "../utils/hashCode"
+import mapValues from "../utils/mapValues"
+import sortObjectByKey from "../utils/sortObjectByKey"
+import type Response from "superagent/lib/node/response"
 
 /**
  * The options available to use on a client constructor.
- * @typedef {Object} ClientOptions
- * @property {string} realm - The realm/region this client is for.
- * @property {string} applicationId - The application ID of this client.
- * @property {string} [accessToken=null] - The access token for this client,
- *   if it will be using one.
- * @param {string} [language=null] - The default localization language
- *   to use for API responses.
- * @param {?number} [options.cacheTimeToLive=600] - The time to live in seconds
- *   for the client's data cache entries. `null` if no there is no TTL.
- * @param {?number} [options.cacheMaxSize=250] - The max number of entries in
- *   the client's data cache.
  */
+export type ClientOptions = {
+	realm: RealmOrRegionString // The realm/region this client is for.
+	applicationId: string // The application ID of this client.
+	accessToken: string | null // The access token for this client, if it will be using one.
+	language: string | null // The default localization language to use for API responses.
+	cacheTimeToLive?: number // The time to live in seconds for the client's data cache entries. `null` if no there is no TTL.
+	cacheMaxSize?: number // The max number of entries in the client's data cache.
+}
+
+export const defaultClientOptions: Partial<ClientOptions> = {
+	accessToken: null,
+	language: null,
+	cacheTimeToLive: 600,
+	cacheMaxSize: 250,
+}
+
+export type APIType = `wot` | `wotb` | `wotx` | `wows` | `wowp` | `wgn`
+
+export type RealmOrRegionString =
+	| `ru`
+	| `eu`
+	| `na`
+	| `kr`
+	| `asia`
+	| `xbox`
+	| `ps4`
 
 /**
  * The options available to use when making a single request.
- * @typedef {Object} RequestOptions
- * @property {string} [type] - The API to send this request to. One of: `wot`,
- *   `wotb`, `wotx`, `wows`, `wowp`, `wgn`.
- * @property {string} [realm] - The realm/region to use for the request.
- *   One of: `ru`, `eu`, `na`, `kr`, `asia`, `xbox`, `ps4`.
  */
+export type RequestOptions = {
+	type: APIType // The API to send this request to. One of: `wot`, `wotb`, `wotx`, `wows`, `wowp`, `wgn`.
+	realm: RealmOrRegionString // The realm/region to use for the request. One of: `ru`, `eu`, `na`, `kr`, `asia`, `xbox`, `ps4`.
+}
 
 /**
  * Mapping between realms and their TLDs.
- * @type {Object}
- * @constant
- * @private
  */
-const REALM_TLD = {
-  ru: 'ru',
-  eu: 'eu',
-  na: 'com',
-  kr: 'kr',
-  asia: 'asia',
-  xbox: 'xbox',
-  ps4: 'ps4',
-};
+const REALM_TLD: Record<RealmOrRegionString, string> = {
+	ru: "ru",
+	eu: "eu",
+	na: "com",
+	kr: "kr",
+	asia: "asia",
+	xbox: "xbox",
+	ps4: "ps4",
+}
+
+type BaseURIGeneratorFunction = (realm: RealmOrRegionString) => string
 
 /**
  * Functions which generate the base URIs for various APIs.
- * @type {Object}
- * @constant
- * @private
  */
-const BASE_URI = {
-  wot: realm => `https://api.worldoftanks.${REALM_TLD[realm]}/wot`,
-  wotb: realm => `https://api.wotblitz.${REALM_TLD[realm]}/wotb`,
-  wotx: realm => `https://api-${REALM_TLD[realm]}-console.worldoftanks.com/wotx`,
-  wows: realm => `https://api.worldofwarships.${REALM_TLD[realm]}/wows`,
-  wowp: realm => `https://api.worldofwarplanes.${REALM_TLD[realm]}/wowp`,
-  wgn: realm => `https://api.worldoftanks.${REALM_TLD[realm]}/wgn`,
-};
+const BASE_URI: Record<APIType, BaseURIGeneratorFunction> = {
+	wot: (realm) => `https://api.worldoftanks.${REALM_TLD[realm]}/wot`,
+	wotb: (realm) => `https://api.wotblitz.${REALM_TLD[realm]}/wotb`,
+	wotx: (realm) =>
+		`https://api-${REALM_TLD[realm]}-console.worldoftanks.com/wotx`,
+	wows: (realm) => `https://api.worldofwarships.${REALM_TLD[realm]}/wows`,
+	wowp: (realm) => `https://api.worldofwarplanes.${REALM_TLD[realm]}/wowp`,
+	wgn: (realm) => `https://api.worldoftanks.${REALM_TLD[realm]}/wgn`,
+}
 
 /**
  * Returns the base URI for a given realm and API type.
- * @param {string} realm - The realm/region of the server.
- * @param {string} type - The desired API.
- * @returns {string} The base URI for the API that was specified.
  * @throws {Error} Thrown if the given `realm` or `type` don't exist.
- * @private
  */
-const getBaseUri = (realm, type) => {
-  if (!REALM_TLD[realm] || !BASE_URI[type]) {
-    throw new Error('Unknown realm or type given.');
-  }
+function getBaseUri(realm: RealmOrRegionString, type: APIType): string {
+	if (!REALM_TLD[realm] || !BASE_URI[type]) {
+		throw new Error("Unknown realm or type given.")
+	}
 
-  return BASE_URI[type](realm);
-};
+	return BASE_URI[type](realm)
+}
+
+type AnyCase<T extends string> = T | Lowercase<T> | Uppercase<T>
+
+type ModifiedClientOptions = ClientOptions & {
+	realm: AnyCase<RealmOrRegionString> // The realm/region this client is for. Can be in any case
+}
+
+interface BaseClientOptions extends ModifiedClientOptions {
+	type: APIType
+}
+
+function toLowerCase<T extends string>(string: T): Lowercase<T> {
+	return string.toLowerCase() as Lowercase<T>
+}
+
+type HTTPMethod = "GET" | "POST"
+
+type AdditionalRequestOptions = {
+	method: HTTPMethod
+}
 
 /**
  * @classdesc The base API client.
  */
 class BaseClient {
-  /**
-   * Constructor.
-   * @param {Object} options - The client options.
-   * @param {string} options.type - The type of API this client is for.
-   * @param {string} options.realm - The realm/region this client is for.
-   * @param {string} options.applicationId - The application ID of this client.
-   * @param {string} [options.accessToken=null] - The access token for this
-   *   client, if it will be using one.
-   * @param {string} [options.language=null] - The default localization language
-   *   to use for API responses.
-   * @param {?number} [options.cacheTimeToLive=600] - The time to live in seconds
-   *   for the client's data cache entries. `null` if no there is no TTL.
-   * @param {?number} [options.cacheMaxSize=250] - The max number of entries in
-   *   the client's data cache.
-   * @throws {TypeError} Thrown if options are not well-formed.
-   */
-  constructor(options) {
-    /**
-     * The default time to live for cache entries, in seconds.
-     * @type {number}
-     * @static
-     * @const
-     * @private
-     */
-    this.constructor.DEFAULT_CACHE_TTL = 600;
+	/**
+	 * The type of API this client is for.
+	 */
+	private type: APIType
 
-    /**
-     * The default size of the cache.
-     * @type {number}
-     * @static
-     * @const
-     * @private
-     */
-    this.constructor.DEFAULT_CACHE_SIZE = 250;
+	/**
+	 * The realm, i.e. region of this client.
+	 */
+	private realm: RealmOrRegionString
 
-    const {
-      type,
-      realm,
-      applicationId,
-      accessToken = null,
-      language = null,
-      cacheTimeToLive = this.constructor.DEFAULT_CACHE_TTL,
-      cacheMaxSize = this.constructor.DEFAULT_CACHE_SIZE,
-    } = options;
+	/**
+	 * The application ID for this client.
+	 */
+	private applicationId: string
 
-    if (typeof realm !== 'string' || !REALM_TLD[realm.toLowerCase()]) {
-      throw new TypeError('Must specify a valid realm for the client.');
-    } else if (typeof applicationId !== 'string') {
-      throw new TypeError('Must specify an application ID for the client.');
-    }
+	/**
+	 * The access token for this client.
+	 */
+	private accessToken: string | null
 
-    const normalizedRealm = realm.toLowerCase();
+	/**
+	 * The default localization language for this client.
+	 */
+	private language: string | null
 
-    /**
-     * The type of API this client is for.
-     * @type {string}
-     */
-    this.type = type;
+	/**
+	 * The client's Authentication module.
+	 */
+	private authentication: Authentication
 
-    /**
-     * The realm, i.e. region of this client.
-     * @type {string}
-     */
-    this.realm = normalizedRealm;
+	/**
+	 * The base API URI for this client.
+	 */
+	private baseUri: string
 
-    /**
-     * The application ID for this client.
-     * @type {string}
-     */
-    this.applicationId = applicationId;
+	/**
+	 * The API response cache.
+	 * @type {Cache}
+	 * @private
+	 */
+	private cache: Cache<unknown, unknown>
 
-    /**
-     * The access token for this client.
-     * @type {?string}
-     */
-    this.accessToken = accessToken;
+	/**
+	 * Constructor.
+	 * @throws {TypeError} Thrown if options are not well-formed.
+	 */
+	constructor(options: BaseClientOptions) {
+		const {
+			type,
+			realm,
+			applicationId,
+			accessToken,
+			language,
+			cacheTimeToLive,
+			cacheMaxSize,
+		} = { ...defaultClientOptions, ...options }
 
-    /**
-     * The default localization language for this client.
-     * @type {?string}
-     */
-    this.language = language;
+		const normalizedRealm = toLowerCase<AnyCase<RealmOrRegionString>>(realm)
 
-    /**
-     * The client's Authentication module.
-     * @type {Authentication}
-     */
-    this.authentication = new Authentication(this);
+		if (typeof realm !== "string" || !REALM_TLD[normalizedRealm]) {
+			throw new TypeError("Must specify a valid realm for the client.")
+		} else if (typeof applicationId !== "string") {
+			throw new TypeError(
+				"Must specify an application ID for the client."
+			)
+		}
 
-    /**
-     * The base API URI for this client.
-     * @type {string}
-     * @private
-     */
-    this.baseUri = getBaseUri(normalizedRealm, type);
+		this.type = type
 
-    /**
-     * The API response cache.
-     * @type {Cache}
-     * @private
-     */
-    this.cache = new Cache({
-      maxAge: cacheTimeToLive,
-      staleWhileRevalidate: 300,
-      maxSize: cacheMaxSize,
-    });
-  }
+		this.realm = normalizedRealm
 
-  /**
-   * Normalizes a given parameter type so the API can consume it.
-   * @param {*} parameter - The parameter to normalize.
-   * @returns {*} The normalized parameter.
-   * @static
-   * @private
-   */
-  static normalizeParameterValue(parameter) {
-    if (Array.isArray(parameter)) {
-      return parameter.join(',');
-    } else if (parameter instanceof Date) {
-      return parameter.toISOString();
-    }
+		this.applicationId = applicationId
 
-    return parameter;
-  }
+		this.accessToken = accessToken
 
-  /**
-   * Sends a GET request to the API.
-   * @param {string} method - The method to request.
-   * @param {Object} [params={}] - The parameters to include in the request.
-   * @param {RequestOptions} [options={}] - Options used to override client defaults.
-   * @returns {Promise.<APIResponse, Error>} Returns a promise resolving to the
-   *   returned API data, or rejecting with an error.
-   */
-  get(method, params = {}, options = {}) {
-    return this.request(method, params, { ...options, method: 'GET' });
-  }
+		this.language = language
 
-  /**
-   * Sends a POST request to the API.
-   * @param {string} method - The method to request.
-   * @param {Object} [params={}] - The parameters to include in the request.
-   * @param {RequestOptions} [options={}] - Options used to override client defaults.
-   * @returns {Promise.<APIResponse, Error>} Returns a promise resolving to the
-   *   returned API data, or rejecting with an error.
-   */
-  post(method, params = {}, options = {}) {
-    return this.request(method, params, { ...options, method: 'POST' });
-  }
+		this.authentication = new Authentication(this)
 
-  /**
-   * Fetches data from an endpoint method.
-   * @param {string} apiMethod - The method to request.
-   * @param {Object} [params={}] - The parameters to include in the request.
-   * @param {RequestOptions} [options={}] - Options used to override client defaults.
-   * @returns {Promise.<APIResponse, Error>} Returns a promise resolving to the
-   *   returned API data, or rejecting with an error.
-   * @private
-   */
-  request(apiMethod, params = {}, options = {}) {
-    return new Promise((resolve) => {
-      const { type = this.type, realm = this.realm, method = 'GET' } = options;
+		this.baseUri = getBaseUri(normalizedRealm, type)
 
-      if (typeof apiMethod !== 'string') {
-        throw new TypeError('Expected API method to be a string.');
-      }
+		this.cache = new Cache<unknown, unknown>({
+			maxAge: cacheTimeToLive,
+			staleWhileRevalidate: 300,
+			maxSize: cacheMaxSize,
+		})
+	}
 
-      const normalizedApiMethod = apiMethod.toLowerCase();
-      const normalizedRealm = realm.toLowerCase();
+	/**
+	 * Normalizes a given parameter type so the API can consume it.
+	 * @param {*} parameter - The parameter to normalize.
+	 * @returns {*} The normalized parameter.
+	 */
+	static normalizeParameterValue<
+		T extends string | Array<unknown> | Date | null
+	>(parameter: T): string | null {
+		if (Array.isArray(parameter)) {
+			return parameter.join(",")
+		} else if (parameter instanceof Date) {
+			return parameter.toISOString()
+		}
 
-      // construct the request URL
-      const baseUrl = normalizedRealm === this.realm
-        ? this.baseUri
-        : getBaseUri(normalizedRealm, type);
-      const requestUrl = `${baseUrl}/${normalizedApiMethod.replace(/^\/*(.+?)\/*$/, '$1')}/`;
+		return parameter
+	}
 
-      // construct the payload
-      const payload = {
-        application_id: this.applicationId,
-        access_token: this.accessToken,
-        language: this.language,
-        ...params,
-      };
+	/**
+	 * Sends a GET request to the API.
+	 * @param {string} method - The method to request.
+	 * @param {Object} [params={}] - The parameters to include in the request.
+	 * @param {RequestOptions} [options={}] - Options used to override client defaults.
+	 * @returns {Promise.<APIResponse, Error>} Returns a promise resolving to the
+	 *   returned API data, or rejecting with an error.
+	 */
+	get(
+		method: string,
+		params: Record<string, unknown> = {},
+		options: Partial<BaseClientOptions> = {}
+	): Promise<unknown> {
+		return this.request(method, params, { ...options, method: "GET" })
+	}
 
-      const normalizedPayload = mapValues(payload, this.constructor.normalizeParameterValue);
+	/**
+	 * Sends a POST request to the API.
+	 * @param {string} method - The method to request.
+	 * @param {Object} [params={}] - The parameters to include in the request.
+	 * @param {RequestOptions} [options={}] - Options used to override client defaults.
+	 * @returns {Promise.<APIResponse, Error>} Returns a promise resolving to the
+	 *   returned API data, or rejecting with an error.
+	 */
+	post(
+		method: string,
+		params: Record<string, unknown> = {},
+		options: Partial<BaseClientOptions> = {}
+	): Promise<unknown> {
+		return this.request(method, params, { ...options, method: "POST" })
+	}
 
-      // compute information for the cache
-      const { application_id, ...rest } = normalizedPayload; // eslint-disable-line no-unused-vars
-      const cacheKey = hashCode(`${requestUrl}${JSON.stringify(sortObjectByKey(rest))}`);
+	/**
+	 * Fetches data from an endpoint method.
+	 * @param {string} apiMethod - The method to request.
+	 * @param {Object} [params={}] - The parameters to include in the request.
+	 * @param {RequestOptions} [options={}] - Options used to override client defaults.
+	 * @returns {Promise.<APIResponse, Error>} Returns a promise resolving to the
+	 *   returned API data, or rejecting with an error.
+	 * @private
+	 */
+	request(
+		apiMethod: string,
+		params: Record<string, unknown> = {},
+		options: Partial<BaseClientOptions> &
+			Partial<AdditionalRequestOptions> = {}
+	): Promise<unknown> {
+		return new Promise((resolve) => {
+			const {
+				type = this.type,
+				realm = this.realm,
+				method = "GET",
+			} = options
 
-      const fulfillResponse = (response) => {
-        const { error = null } = response.body;
+			if (typeof apiMethod !== "string") {
+				throw new TypeError("Expected API method to be a string.")
+			}
 
-        if (error) {
-          // Wargaming API error
-          throw new APIError({
-            client: this,
-            statusCode: response.status,
-            method: normalizedApiMethod,
-            error,
-          });
-        }
+			const normalizedApiMethod = apiMethod.toLowerCase()
+			const normalizedRealm =
+				toLowerCase<AnyCase<RealmOrRegionString>>(realm)
 
-        return new APIResponse({
-          client: this,
-          requestRealm: normalizedRealm,
-          method: normalizedApiMethod,
-          body: response.body,
-        });
-      };
+			// construct the request URL
+			const baseUrl =
+				normalizedRealm === this.realm
+					? this.baseUri
+					: getBaseUri(normalizedRealm, type)
+			const requestUrl = `${baseUrl}/${normalizedApiMethod.replace(
+				/^\/*(.+?)\/*$/,
+				"$1"
+			)}/`
 
-      const rejectResponse = (value) => {
-        // check if this is a HTTP error or a Wargaming error
-        if (value instanceof Error) {
-          throw value;
-        }
+			// construct the payload
+			const payload = {
+				application_id: this.applicationId,
+				access_token: this.accessToken,
+				language: this.language,
+				...params,
+			}
 
-        const { response: { error } } = value;
+			const normalizedPayload = mapValues(
+				payload,
+				BaseClient.normalizeParameterValue
+			)
 
-        throw new RequestError({
-          message: value.body.error.message,
-          client: this,
-          statusCode: error.status,
-        });
-      };
+			// compute information for the cache
+			const { application_id, ...rest } = normalizedPayload // eslint-disable-line no-unused-vars
+			const cacheKey = hashCode(
+				`${requestUrl}${JSON.stringify(sortObjectByKey(rest))}`
+			)
 
-      if (method === 'GET') {
-        const cached = this.cache.get(cacheKey);
+			const fulfillResponse = (response: Response) => {
+				const { error = null } = response.body
 
-        if (cached) {
-          const response = new APIResponse({
-            client: this,
-            requestRealm: normalizedRealm,
-            method: normalizedApiMethod,
-            body: cached,
-          });
+				if (error) {
+					// Wargaming API error
+					throw new APIError({
+						client: this,
+						statusCode: response.status,
+						method: normalizedApiMethod,
+						error,
+					})
+				}
 
-          resolve(response);
-        }
+				return new APIResponse({
+					client: this,
+					requestRealm: normalizedRealm,
+					method: normalizedApiMethod,
+					body: response.body,
+				})
+			}
 
-        const promise = request.get(requestUrl)
-          .query(normalizedPayload)
-          .then(fulfillResponse)
-          .then((apiResponse) => {
-            this.cache.set(cacheKey, apiResponse.body, {
-              revalidate: (key, callback) => {
-                this.request(apiMethod, params, options)
-                  .then((revalidateResponse) => {
-                    callback(null, revalidateResponse.body);
-                  })
-                  .catch(callback);
-              },
-            });
+			const rejectResponse = (value) => {
+				// check if this is a HTTP error or a Wargaming error
+				if (value instanceof Error) {
+					throw value
+				}
 
-            return apiResponse;
-          })
-          .catch(rejectResponse);
+				const {
+					response: { error },
+				} = value
 
-        resolve(promise);
-      } else if (method === 'POST') {
-        const promise = request.post(requestUrl)
-          .type('form')
-          .send(normalizedPayload)
-          .then(fulfillResponse)
-          .catch(rejectResponse);
+				throw new RequestError({
+					message: value.body.error.message,
+					client: this,
+					statusCode: error.status,
+				})
+			}
 
-        resolve(promise);
-      }
+			if (method === "GET") {
+				const cached = this.cache.get(cacheKey)
 
-      // we should never get here
-      throw new Error('Received invalid request method.');
-    });
-  }
+				if (cached) {
+					const response = new APIResponse({
+						client: this,
+						requestRealm: normalizedRealm,
+						method: normalizedApiMethod,
+						body: cached,
+					})
+
+					resolve(response)
+				}
+
+				const promise = request
+					.get(requestUrl)
+					.query(normalizedPayload)
+					.then(fulfillResponse)
+					.then((apiResponse) => {
+						this.cache.set(cacheKey, apiResponse.body, {
+							revalidate: (key, callback) => {
+								this.request(apiMethod, params, options)
+									.then((revalidateResponse) => {
+										callback(null, revalidateResponse.body)
+									})
+									.catch(callback)
+							},
+						})
+
+						return apiResponse
+					})
+					.catch(rejectResponse)
+
+				resolve(promise)
+			} else if (method === "POST") {
+				const promise = request
+					.post(requestUrl)
+					.type("form")
+					.send(normalizedPayload)
+					.then(fulfillResponse)
+					.catch(rejectResponse)
+
+				resolve(promise)
+			}
+
+			// we should never get here
+			throw new Error("Received invalid request method.")
+		})
+	}
 }
 
-export default BaseClient;
+export default BaseClient
