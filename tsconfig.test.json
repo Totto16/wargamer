@@ -40,7 +40,5 @@
         "noStrictGenericChecks": false,
         "rootDir": "."
     },
-    "include": [
-        "test/**/*.ts"
-    ]
+    "include": ["test/**/*.ts"]
 }

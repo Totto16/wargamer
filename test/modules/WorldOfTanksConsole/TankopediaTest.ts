@@ -42,7 +42,7 @@ describe('Tankopedia', function () {
 
     it('throws for invalid identifier types', function () {
       return expect(
-        client.tankopedia.findVehicle({} as string)
+        client.tankopedia.findVehicle({} as string),
       ).rejects.toBeInstanceOf(Error);
     });
   });
