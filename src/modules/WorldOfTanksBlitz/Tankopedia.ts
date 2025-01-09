@@ -7,6 +7,10 @@ import {
 } from '../mixins/Encyclopedia.ts';
 import type BaseClient from '../../clients/BaseClient';
 
+export type Vehicle = {
+  //TODO
+};
+
 /**
  * @classdesc Module for the World of Tanks Blitz Tankopedia endpoint.
  * @extends ClientModule
@@ -45,7 +49,7 @@ class Tankopedia extends ClientModule {
   findVehicle(
     identifier: number | string,
   ): Promise<Record<string, unknown> | null> {
-    return (resolveEntry<string, Record<string, unknown>>).call(this, {
+    return (resolveEntry<string, Vehicle>).call(this, {
       identifier,
       indexEndpoint: 'encyclopedia/vehicles',
       dataEndpoint: 'encyclopedia/vehicles',
