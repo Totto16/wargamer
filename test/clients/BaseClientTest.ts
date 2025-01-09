@@ -180,22 +180,22 @@ describe('BaseClient', function () {
         applicationId: process.env.APPLICATION_ID,
       });
 
-      const accountListSearchBadApplicationId = client.get<
-        Record<string, unknown>
-      >('account/list', {
-        search: 'test',
-        application_id: 'foo',
-      });
+      const getAccountListSearchBadApplicationId = () => {
+        return client.get<Record<string, unknown>>('account/list', {
+          search: 'test',
+          application_id: 'foo',
+        });
+      };
 
       it('rejects with an APIError', function () {
-        return expect(accountListSearchBadApplicationId).rejects.toBeInstanceOf(
-          APIError,
-        );
+        return expect(
+          getAccountListSearchBadApplicationId(),
+        ).rejects.toBeInstanceOf(APIError);
       });
 
       it('rejects with an INVALID_APPLICATION_ID error when given a bad application ID', function () {
         return expect(
-          accountListSearchBadApplicationId.catch(
+          getAccountListSearchBadApplicationId().catch(
             (error: APIError<unknown>) => error.apiMessage,
           ),
         ).resolves.toEqual('INVALID_APPLICATION_ID');
@@ -203,7 +203,9 @@ describe('BaseClient', function () {
 
       it('rejects and logs the correct API method used', function () {
         return expect(
-          accountListSearchBadApplicationId.then((error) => error.method),
+          getAccountListSearchBadApplicationId().catch(
+            (error: APIError<unknown>) => error.method,
+          ),
         ).resolves.toEqual('account/list');
       });
     });

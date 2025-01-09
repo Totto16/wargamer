@@ -7,7 +7,7 @@ import type { SearchType } from '../../../src/modules/common/Accounts';
 describe('Accounts', function () {
   describe('World of Tanks', function () {
     const client = new WorldOfTanks({
-      realm: 'na',
+      realm: 'eu',
       applicationId: process.env.APPLICATION_ID,
     });
 
@@ -15,7 +15,7 @@ describe('Accounts', function () {
       it('finds exact matches', async function () {
         return await expect(
           client.accounts.findPlayerId('straik', 'exact'),
-        ).resolves.toEqual(73892);
+        ).resolves.toEqual(587268047);
       });
 
       it('finds fuzzy matches', async function () {
