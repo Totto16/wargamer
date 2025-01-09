@@ -48,3 +48,4 @@ dist
 # Misc
 .idea
 .env
+.vscode/

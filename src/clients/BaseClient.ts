@@ -219,8 +219,8 @@ class BaseClient {
    * @returns {*} The normalized parameter.
    */
   static normalizeParameterValue<
-    T extends string | Array<unknown> | Date | null,
-  >(parameter: T): string | null {
+    T extends string | Array<unknown> | Date | null | undefined | number,
+  >(parameter: T): string | null | undefined | number {
     if (Array.isArray(parameter)) {
       return parameter.join(',');
     }
@@ -286,6 +286,8 @@ class BaseClient {
       Partial<AdditionalRequestOptions> = {},
     pageOptions: PageOptions | InternalPageOptions,
   ): Promise<APIResponse<T>> {
+    console.log('request', pageOptions);
+
     return new Promise((resolve) => {
       const { type = this.type, realm = this.realm, method = 'GET' } = options;
 
@@ -306,13 +308,19 @@ class BaseClient {
         '$1',
       )}/`;
 
+      const pagePayloadOptions =
+        pageOptions === false ? {} : { page_no: pageOptions.page };
+
       // construct the payload
       const payload = {
         application_id: this.applicationId,
         access_token: this.accessToken,
         language: this.language,
         ...params,
+        ...pagePayloadOptions,
       };
+
+      console.log('payload', payload, params, pagePayloadOptions);
 
       const normalizedPayload = mapValues(
         payload,
@@ -329,6 +337,8 @@ class BaseClient {
         `${requestUrl}${JSON.stringify(sortObjectByKey(rest))}${currentPage}`,
       );
 
+      console.log('cacheKey', cacheKey);
+
       function mergeData(data1: unknown, data2: unknown): unknown {
         if (typeof data1 === 'object' && typeof data2 === 'object') {
           if (Array.isArray(data1) && Array.isArray(data2)) {
@@ -341,10 +351,10 @@ class BaseClient {
         return [data1, data2];
       }
 
-      const fulfillResponse = <R>(
-        response: Response,
-      ): Promise<APIResponse<R>> | APIResponse<R> => {
+      const fulfillResponse = <R>(response: Response): APIResponse<R> => {
         const { error = null } = response.body;
+
+        console.log('fulfillResponse', response);
 
         if (error) {
           // Wargaming API error
@@ -386,7 +396,9 @@ class BaseClient {
           }
 
           if (!finished) {
-            return this.request<R>(
+            const _a = mergeData(1, 1);
+            console.log(_a, newPageOptions);
+            /*  return this.request<R>(
               apiMethod,
               params,
               options,
@@ -396,7 +408,8 @@ class BaseClient {
               //TODO: merge page metadata
               res.body.meta = 'finished fetching all data from all pages';
               return res;
-            });
+            }); */
+            console.log('NOT FINISHED FETCHING');
           }
         }
 
@@ -439,9 +452,11 @@ class BaseClient {
         });
       };
 
+      console.log('method', method);
+
       if (method === 'GET') {
         const cached = this.cache.get(cacheKey);
-
+        console.log('cached', cached);
         if (cached) {
           const response: APIResponse<T> = new APIResponse<T>({
             client: this,
@@ -452,6 +467,8 @@ class BaseClient {
 
           resolve(response);
         }
+
+        console.log('BEFORE get', requestUrl);
 
         const promise: Promise<APIResponse<T>> = request
           .get(requestUrl)

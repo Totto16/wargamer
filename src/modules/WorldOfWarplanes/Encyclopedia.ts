@@ -28,6 +28,7 @@ class Encyclopedia extends ClientModule {
      */
     this.fuse = new Fuse([], {
       keys: ['name_i18n'],
+      includeScore: true,
     });
   }
 

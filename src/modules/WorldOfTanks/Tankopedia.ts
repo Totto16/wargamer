@@ -54,6 +54,7 @@ class Tankopedia extends ClientModule {
      */
     this.fuse = new Fuse([], {
       keys: ['name', 'short_name'],
+      includeScore: true 
     });
   }
 

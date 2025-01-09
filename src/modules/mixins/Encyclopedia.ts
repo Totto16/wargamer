@@ -13,7 +13,8 @@ type PageIndex = {
   page: number;
 };
 
-const CONFIDENCE_SCORE_FOR_SMART_EARLY_RETURN = 0.9;
+// 0.0 means exact match, 1.0 means it is something completely different
+const CONFIDENCE_SCORE_FOR_SMART_EARLY_RETURN = 0.1;
 
 /**
  * Searches for an entry in the encyclopedia endpoint for an API.
@@ -62,7 +63,7 @@ export const resolveEntry = function resolveEntry<
   return (resolveEntryImpl<T, D>).call(this, params, pageMode, { page: 1 });
 };
 
-const resolveEntryImpl = function resolveEntryImpl<
+const resolveEntryImpl = async function resolveEntryImpl<
   T extends string,
   D extends Record<string, unknown>,
 >(
@@ -80,81 +81,84 @@ const resolveEntryImpl = function resolveEntryImpl<
     searchFields,
   } = params;
 
+  console.log('resolveEntryImpl', page, pageMode);
+
   if (typeof identifier === 'number') {
-    return this.client
-      .get<Array<D>>(dataEndpoint, { [identifierKey]: identifier })
-      .then((response) => (response.data && response.data[identifier]) ?? null);
+    const response = await this.client.get<Array<D>>(dataEndpoint, {
+      [identifierKey]: identifier,
+    });
+
+    return (response.data && response.data[identifier]) ?? null;
   }
 
   if (typeof identifier === 'string') {
     const pageOptions: PageOptions = pageMode === 'smart' ? false : { page: 1 };
 
-    return this.client
-      .get<Record<T, D>>(indexEndpoint, {
+    const response = await this.client.get<Record<T, D>>(
+      indexEndpoint,
+      {
         fields: [...searchFields, identifierKey],
-        pageOptions,
-      })
-      .then((response): null | Promise<D | null> => {
-        const entries = response.data;
+      },
+      {},
+      pageOptions,
+    );
 
-        if (!entries) {
-          return null;
-        }
+    const entries = response.data;
+    console.log('response');
 
-        const collection: D[] = (Object.keys(entries) as T[]).reduce<D[]>(
-          (accumulated, next: T): D[] => [...accumulated, entries[next]!],
-          [] as D[],
-        );
+    if (!entries) {
+      return null;
+    }
 
-        fuse.setCollection(collection);
+    const collection: D[] = (Object.keys(entries) as T[]).reduce<D[]>(
+      (accumulated, next: T): D[] => [...accumulated, entries[next]!],
+      [] as D[],
+    );
 
-        const results = fuse.search(identifier);
+    fuse.setCollection(collection);
 
-        if (!results.length) {
-          return null;
-        }
-        const [result1, ..._rest] = results;
+    const results = fuse.search(identifier);
 
-        if (!result1) {
-          return null;
-        }
+    if (!results.length) {
+      return null;
+    }
+    const [result1, ..._rest] = results;
 
-        console.log(pageMode, result1.score);
+    if (!result1) {
+      return null;
+    }
 
-        if (pageMode === 'smart') {
-          if (
-            result1.score &&
-            result1.score >= CONFIDENCE_SCORE_FOR_SMART_EARLY_RETURN
-          ) {
-            // skip and do the rest below
-          } else {
-            return (resolveEntryImpl<T, D>).call(this, params, pageMode, {
-              page: page + 1,
-            });
-          }
-        }
-        // we are here, if we used full page mode or we have a good result
+    console.log(pageMode, result1.score);
 
-        // get the first entry, which is the best
-        const {
-          item: { [identifierKey]: matchedId },
-        } = result1;
-
-        return Promise.all([
-          matchedId as T,
-          this.client.get<Record<T, D>>(dataEndpoint, {
-            [identifierKey]: matchedId,
-          }),
-        ]).then((result) => {
-          if (!result) {
-            return null;
-          }
-
-          const [matchedId, response] = result;
-
-          return response.data?.[matchedId] ?? null;
+    if (pageMode === 'smart') {
+      if (
+        result1.score &&
+        result1.score <= CONFIDENCE_SCORE_FOR_SMART_EARLY_RETURN
+      ) {
+        // skip and do the rest below
+        throw new Error("HEHEHEHEHEHE")
+      } else {
+        console.log('here rexursing ', page);
+        return (resolveEntryImpl<T, D>).call(this, params, pageMode, {
+          page: page + 1,
         });
-      });
+      }
+    }
+    // we are here, if we used full page mode or we have a good result
+
+    // get the first entry, which is the best
+    const {
+      item: { [identifierKey]: matchedId },
+    } = result1;
+
+    const responseWithDetails = await this.client.get<Record<T, D>>(
+      dataEndpoint,
+      {
+        [identifierKey]: matchedId,
+      },
+    );
+
+    return responseWithDetails.data?.[matchedId as T] ?? null;
   }
 
   return Promise.reject(
