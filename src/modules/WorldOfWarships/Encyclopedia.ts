@@ -1,6 +1,10 @@
 import Fuse from 'fuse.js';
 import ClientModule from '../ClientModule.ts';
-import { localize, resolveEntry } from '../mixins/Encyclopedia.ts';
+import {
+  localize,
+  resolveEntry,
+  type PageMode,
+} from '../mixins/Encyclopedia.ts';
 import type BaseClient from '../../clients/BaseClient';
 
 type Ship = {
@@ -28,6 +32,7 @@ class Encyclopedia extends ClientModule {
      */
     this.fuse = new Fuse([], {
       keys: ['name'],
+      includeScore: true,
     });
   }
 
@@ -41,15 +46,22 @@ class Encyclopedia extends ClientModule {
    * @returns {Promise.<?Object, Error>} A promise resolving to the data for the
    *   matched ship, or `null` if no ships were matched.
    */
-  findShip(identifier: number | string): Promise<object | null> {
-    return (resolveEntry<string, Ship>).call(this, {
-      identifier,
-      indexEndpoint: 'encyclopedia/ships',
-      dataEndpoint: 'encyclopedia/ships',
-      identifierKey: 'ship_id',
-      fuse: this.fuse,
-      searchFields: ['name'],
-    });
+  findShip(
+    identifier: number | string,
+    pageMode: PageMode = 'smart',
+  ): Promise<object | null> {
+    return (resolveEntry<string, Ship>).call(
+      this,
+      {
+        identifier,
+        indexEndpoint: 'encyclopedia/ships',
+        dataEndpoint: 'encyclopedia/ships',
+        identifierKey: 'ship_id',
+        fuse: this.fuse,
+        searchFields: ['name'],
+      },
+      pageMode,
+    );
   }
 
   /**

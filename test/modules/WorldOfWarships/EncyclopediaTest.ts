@@ -5,7 +5,7 @@ import WorldOfWarships from '../../../src/clients/WorldOfWarships';
 
 describe('Encyclopedia', function () {
   const client = new WorldOfWarships({
-    realm: 'na',
+    realm: 'eu',
     applicationId: process.env.APPLICATION_ID,
   });
 
@@ -16,11 +16,29 @@ describe('Encyclopedia', function () {
       ).resolves.toHaveProperty('name', 'ARP Nachi');
     });
 
-    it('finds ships by name', function () {
+    it('finds ships by name (first page, smart)', function () {
       return expect(
-        client.encyclopedia.findShip('kongo'),
+        client.encyclopedia.findShip('colorado', 'smart'),
+      ).resolves.toHaveProperty('name', 'Colorado 2');
+    }, 5000);
+
+    it('finds ships by name (later page, smart)', function () {
+      return expect(
+        client.encyclopedia.findShip('kongo', 'smart'),
       ).resolves.toHaveProperty('name', 'Kongo');
-    });
+    }, 5000);
+
+    it('finds ships by name (first page, full)', function () {
+      return expect(
+        client.encyclopedia.findShip('colorado', 'full'),
+      ).resolves.toHaveProperty('name', 'Colorado 2');
+    }, 5000);
+
+    it('finds ships by name (later page, full)', function () {
+      return expect(
+        client.encyclopedia.findShip('kongo', 'full'),
+      ).resolves.toHaveProperty('name', 'Kongo');
+    }, 5000);
 
     it('finds ships by partial name match', function () {
       return expect(

@@ -1,11 +1,20 @@
 import Fuse from 'fuse.js';
 import type ClientModule from '../ClientModule';
-import type APIResponse from '../../responses/APIResponse';
+import type { PageOptions } from '../../clients/BaseClient';
 
 export type EncyclopediaModule = {
   price_xp: number;
   type: string;
 };
+
+export type PageMode = 'smart' | 'full';
+
+type PageIndex = {
+  page: number;
+};
+
+// 0.0 means exact match, 1.0 means it is something completely different
+const CONFIDENCE_SCORE_FOR_SMART_EARLY_RETURN = 0.1;
 
 /**
  * Searches for an entry in the encyclopedia endpoint for an API.
@@ -43,9 +52,25 @@ interface ResolveEntryParams<T> {
  * @this {ClientModule}
  * @private
  */
-export const resolveEntry = function resolveEntry<T extends string | number, D>(
+export const resolveEntry = function resolveEntry<
+  T extends string,
+  D extends Record<string, unknown>,
+>(
   this: ClientModule,
-  params: ResolveEntryParams<T>,
+  params: ResolveEntryParams<D>,
+  pageMode: PageMode = 'smart',
+): Promise<D | null> {
+  return (resolveEntryImpl<T, D>).call(this, params, pageMode, { page: 1 });
+};
+
+const resolveEntryImpl = async function resolveEntryImpl<
+  T extends string,
+  D extends Record<string, unknown>,
+>(
+  this: ClientModule,
+  params: ResolveEntryParams<D>,
+  pageMode: PageMode = 'smart',
+  { page }: PageIndex,
 ): Promise<D | null> {
   const {
     identifier,
@@ -56,60 +81,84 @@ export const resolveEntry = function resolveEntry<T extends string | number, D>(
     searchFields,
   } = params;
 
+  console.log('resolveEntryImpl', page, pageMode);
+
   if (typeof identifier === 'number') {
-    return this.client
-      .get<Array<D>>(dataEndpoint, { [identifierKey]: identifier })
-      .then((response) => (response.data && response.data[identifier]) ?? null);
+    const response = await this.client.get<Array<D>>(dataEndpoint, {
+      [identifierKey]: identifier,
+    });
+
+    return (response.data && response.data[identifier]) ?? null;
   }
+
   if (typeof identifier === 'string') {
-    return this.client
-      .get<Record<string, T>>(indexEndpoint, {
+    const pageOptions: PageOptions = pageMode === 'smart' ? false : { page: 1 };
+
+    const response = await this.client.get<Record<T, D>>(
+      indexEndpoint,
+      {
         fields: [...searchFields, identifierKey],
-      })
-      .then((response): null | Promise<[T, APIResponse<Record<T, D>>]> => {
-        const entries = response.data;
+      },
+      {},
+      pageOptions,
+    );
 
-        if (!entries) {
-          return null;
-        }
+    const entries = response.data;
+    console.log('response');
 
-        const collection: T[] = Object.keys(entries).reduce<T[]>(
-          (accumulated, next): T[] => [...accumulated, entries[next]!],
-          [] as T[],
-        );
+    if (!entries) {
+      return null;
+    }
 
-        fuse.setCollection(collection);
+    const collection: D[] = (Object.keys(entries) as T[]).reduce<D[]>(
+      (accumulated, next: T): D[] => [...accumulated, entries[next]!],
+      [] as D[],
+    );
 
-        const results = fuse.search(identifier);
+    fuse.setCollection(collection);
 
-        if (!results.length) {
-          return null;
-        }
+    const results = fuse.search(identifier);
 
-        const [result1, ..._rest] = results;
+    if (!results.length) {
+      return null;
+    }
+    const [result1, ..._rest] = results;
 
-        if (!result1) {
-          return null;
-        }
+    if (!result1) {
+      return null;
+    }
 
-        const { item: matchedId } = result1;
+    console.log(pageMode, result1.score);
 
-        return Promise.all([
-          matchedId,
-          this.client.get<Record<T, D>>(dataEndpoint, {
-            [identifierKey]: matchedId,
-          }),
-        ]);
-      })
-      .then((result) => {
-        if (!result) {
-          return null;
-        }
+    if (pageMode === 'smart') {
+      if (
+        result1.score &&
+        result1.score <= CONFIDENCE_SCORE_FOR_SMART_EARLY_RETURN
+      ) {
+        // skip and do the rest below
+        throw new Error("HEHEHEHEHEHE")
+      } else {
+        console.log('here rexursing ', page);
+        return (resolveEntryImpl<T, D>).call(this, params, pageMode, {
+          page: page + 1,
+        });
+      }
+    }
+    // we are here, if we used full page mode or we have a good result
 
-        const [matchedId, response] = result;
+    // get the first entry, which is the best
+    const {
+      item: { [identifierKey]: matchedId },
+    } = result1;
 
-        return response.data?.[matchedId] ?? null;
-      });
+    const responseWithDetails = await this.client.get<Record<T, D>>(
+      dataEndpoint,
+      {
+        [identifierKey]: matchedId,
+      },
+    );
+
+    return responseWithDetails.data?.[matchedId as T] ?? null;
   }
 
   return Promise.reject(

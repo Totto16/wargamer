@@ -2,7 +2,7 @@ import Cache from 'stale-lru-cache';
 import request from 'superagent';
 import type Response from 'superagent/lib/node/response';
 import APIError, { type WargamingAPIError } from '../errors/APIError.ts';
-import APIResponse from '../responses/APIResponse.ts';
+import APIResponse, { type ResponseBody } from '../responses/APIResponse.ts';
 import Authentication from '../modules/common/Authentication.ts';
 import RequestError from '../errors/RequestError.ts';
 import hashCode from '../utils/hashCode.ts';
@@ -97,6 +97,24 @@ export interface BaseClientOptions extends ModifiedClientOptions {
 
 function toLowerCase<T extends string>(string: T): Lowercase<T> {
   return string.toLowerCase() as Lowercase<T>;
+}
+
+type SpecificPage = {
+  page: number;
+};
+
+export type PageOptions = SpecificPage | false;
+
+type InternalPageOptions = SpecificPage & {
+  amount: number;
+};
+
+function isInternalPageOptions(
+  options: SpecificPage | InternalPageOptions,
+): options is InternalPageOptions {
+  return (
+    typeof (options as { amount?: number | undefined })['amount'] === 'number'
+  );
 }
 
 type HTTPMethod = 'GET' | 'POST';
@@ -201,8 +219,8 @@ class BaseClient {
    * @returns {*} The normalized parameter.
    */
   static normalizeParameterValue<
-    T extends string | Array<unknown> | Date | null,
-  >(parameter: T): string | null {
+    T extends string | Array<unknown> | Date | null | undefined | number,
+  >(parameter: T): string | null | undefined | number {
     if (Array.isArray(parameter)) {
       return parameter.join(',');
     }
@@ -225,8 +243,9 @@ class BaseClient {
     method: string,
     params: Record<string, unknown> = {},
     options: Partial<BaseClientOptions> = {},
+    page: PageOptions = false,
   ): Promise<APIResponse<T>> {
-    return this.request<T>(method, params, { ...options, method: 'GET' });
+    return this.request<T>(method, params, { ...options, method: 'GET' }, page);
   }
 
   /**
@@ -241,8 +260,14 @@ class BaseClient {
     method: string,
     params: Record<string, unknown> = {},
     options: Partial<BaseClientOptions> = {},
+    page: PageOptions = false,
   ): Promise<APIResponse<T>> {
-    return this.request<T>(method, params, { ...options, method: 'POST' });
+    return this.request<T>(
+      method,
+      params,
+      { ...options, method: 'POST' },
+      page,
+    );
   }
 
   /**
@@ -259,7 +284,10 @@ class BaseClient {
     params: Record<string, unknown> = {},
     options: Partial<BaseClientOptions> &
       Partial<AdditionalRequestOptions> = {},
+    pageOptions: PageOptions | InternalPageOptions,
   ): Promise<APIResponse<T>> {
+    console.log('request', pageOptions);
+
     return new Promise((resolve) => {
       const { type = this.type, realm = this.realm, method = 'GET' } = options;
 
@@ -280,28 +308,53 @@ class BaseClient {
         '$1',
       )}/`;
 
+      const pagePayloadOptions =
+        pageOptions === false ? {} : { page_no: pageOptions.page };
+
       // construct the payload
       const payload = {
         application_id: this.applicationId,
         access_token: this.accessToken,
         language: this.language,
         ...params,
+        ...pagePayloadOptions,
       };
+
+      console.log('payload', payload, params, pagePayloadOptions);
 
       const normalizedPayload = mapValues(
         payload,
         BaseClient.normalizeParameterValue,
       );
 
+      const currentPage =
+        pageOptions === false ? '' : `?page=${pageOptions.page}`;
+
       // compute information for the cache
       // eslint-disable-next-line @typescript-eslint/no-unused-vars, camelcase
       const { application_id, ...rest } = normalizedPayload;
       const cacheKey = hashCode(
-        `${requestUrl}${JSON.stringify(sortObjectByKey(rest))}`,
+        `${requestUrl}${JSON.stringify(sortObjectByKey(rest))}${currentPage}`,
       );
+
+      console.log('cacheKey', cacheKey);
+
+      function mergeData(data1: unknown, data2: unknown): unknown {
+        if (typeof data1 === 'object' && typeof data2 === 'object') {
+          if (Array.isArray(data1) && Array.isArray(data2)) {
+            return [...data1, ...data2];
+          }
+
+          return { ...data1, ...data2 };
+        }
+
+        return [data1, data2];
+      }
 
       const fulfillResponse = <R>(response: Response): APIResponse<R> => {
         const { error = null } = response.body;
+
+        console.log('fulfillResponse', response);
 
         if (error) {
           // Wargaming API error
@@ -311,6 +364,53 @@ class BaseClient {
             method: normalizedApiMethod,
             error,
           });
+        }
+
+        if (pageOptions !== false) {
+          let newPageOptions: PageOptions | InternalPageOptions = {
+            page: pageOptions.page + 1,
+          };
+          let finished = false;
+
+          const body: ResponseBody<unknown> = response.body;
+
+          let amount: number;
+
+          if (isInternalPageOptions(pageOptions)) {
+            amount = pageOptions.amount;
+          } else {
+            if (typeof body.meta === 'object') {
+              amount = body.meta!.page_total;
+            } else {
+              amount = -1;
+            }
+          }
+
+          if (pageOptions.page !== amount) {
+            newPageOptions = {
+              page: pageOptions.page + 1,
+              amount: amount >= 1 ? amount : undefined,
+            };
+          } else {
+            finished = true;
+          }
+
+          if (!finished) {
+            const _a = mergeData(1, 1);
+            console.log(_a, newPageOptions);
+            /*  return this.request<R>(
+              apiMethod,
+              params,
+              options,
+              newPageOptions,
+            ).then((res) => {
+              res.body.data = mergeData(response.body.data, res.body.data) as R;
+              //TODO: merge page metadata
+              res.body.meta = 'finished fetching all data from all pages';
+              return res;
+            }); */
+            console.log('NOT FINISHED FETCHING');
+          }
         }
 
         return new APIResponse({
@@ -352,9 +452,11 @@ class BaseClient {
         });
       };
 
+      console.log('method', method);
+
       if (method === 'GET') {
         const cached = this.cache.get(cacheKey);
-
+        console.log('cached', cached);
         if (cached) {
           const response: APIResponse<T> = new APIResponse<T>({
             client: this,
@@ -366,6 +468,8 @@ class BaseClient {
           resolve(response);
         }
 
+        console.log('BEFORE get', requestUrl);
+
         const promise: Promise<APIResponse<T>> = request
           .get(requestUrl)
           .query(normalizedPayload)
@@ -373,7 +477,7 @@ class BaseClient {
           .then((apiResponse: APIResponse<T>): APIResponse<T> => {
             this.cache.set(cacheKey, apiResponse.body, {
               revalidate: (_key, callback) => {
-                this.request(apiMethod, params, options)
+                this.request(apiMethod, params, options, pageOptions)
                   .then((revalidateResponse) => {
                     callback(null, revalidateResponse.body);
                   })

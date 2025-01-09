@@ -38,7 +38,7 @@ type VehicleData = {
  * @extends ClientModule
  */
 class Tankopedia extends ClientModule {
-  private fuse: Fuse<string>;
+  private fuse: Fuse<SingleVehicleData>;
 
   /**
    * Constructor.
@@ -54,6 +54,7 @@ class Tankopedia extends ClientModule {
      */
     this.fuse = new Fuse([], {
       keys: ['name', 'short_name'],
+      includeScore: true 
     });
   }
 

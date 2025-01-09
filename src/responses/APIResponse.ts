@@ -1,8 +1,16 @@
 import type BaseClient from '../clients/BaseClient';
 import type { RealmOrRegionString } from '../clients/BaseClient';
 
+export type PageInformation = {
+  count: number;
+  page_total: number;
+  total: number;
+  limit: number;
+  page: number;
+};
+
 export type ResponseBody<D = Record<string, unknown>> = {
-  meta?: string | null;
+  meta?: string | null | PageInformation;
   data?: D | null;
 };
 

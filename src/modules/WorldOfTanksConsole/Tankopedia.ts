@@ -7,12 +7,16 @@ import {
 } from '../mixins/Encyclopedia.ts';
 import type BaseClient from '../../clients/BaseClient';
 
+export type Vehicle = {
+  //TODO
+};
+
 /**
  * @classdesc Module for the World of Tanks Console Tankopedia endpoint.
  * @extends ClientModule
  */
 class Tankopedia extends ClientModule {
-  private fuse: Fuse<string>;
+  private fuse: Fuse<Vehicle>;
 
   /**
    * Constructor.
@@ -28,6 +32,7 @@ class Tankopedia extends ClientModule {
      */
     this.fuse = new Fuse([], {
       keys: ['name', 'short_name'],
+      includeScore: true,
     });
   }
 
@@ -45,7 +50,7 @@ class Tankopedia extends ClientModule {
   findVehicle(
     identifier: number | string,
   ): Promise<Record<string, unknown> | null> {
-    return (resolveEntry<string, Record<string, unknown>>).call(this, {
+    return (resolveEntry<string, Vehicle>).call(this, {
       identifier,
       indexEndpoint: 'encyclopedia/vehicles',
       dataEndpoint: 'encyclopedia/vehicles',
