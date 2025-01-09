@@ -4,7 +4,8 @@ import { localize, resolveEntry } from '../mixins/Encyclopedia.ts';
 import type BaseClient from '../../clients/BaseClient';
 
 type Ship = {
-  //TODO
+  // TODO
+  todo: 0;
 };
 
 /**

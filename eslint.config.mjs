@@ -36,4 +36,11 @@ export default [
             'operator-linebreak': 'off',
         },
     },
+    {
+        ignores: [
+            '**/eslint.config.mjs',
+            '**/vitest.config.mts',
+            '**/tsup.config.ts',
+        ],
+    },
 ]

@@ -86,7 +86,7 @@ export const resolveEntry = function resolveEntry<T extends string | number, D>(
           return null;
         }
 
-        const [result1, ..._rest] = results;
+        const result1 = results[0];
 
         if (!result1) {
           return null;

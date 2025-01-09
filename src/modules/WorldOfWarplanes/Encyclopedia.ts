@@ -4,7 +4,8 @@ import { resolveEntry } from '../mixins/Encyclopedia.ts';
 import type BaseClient from '../../clients/BaseClient';
 
 type Plane = {
-  //TODO
+  // TODO
+  todo: 0;
 };
 
 /**
