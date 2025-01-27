@@ -1,0 +1,22 @@
+{
+    "trailingComma": "es5",
+    "tabWidth": 4,
+    "semi": false,
+    "singleQuote": true,
+    "overrides": [
+        {
+            "files": ["**.ts"],
+            "excludeFiles": [
+                "tsup.config.ts",
+                "vitest.config.mts",
+                "eslint.config.mts"
+            ],
+            "options": {
+                "trailingComma": "all",
+                "tabWidth": 2,
+                "semi": true,
+                "singleQuote": true
+            }
+        }
+    ]
+}

@@ -1,0 +1,37 @@
+import 'dotenv/config';
+
+import WorldOfWarplanes from '../../../src/clients/WorldOfWarplanes';
+import { describe, expect, it } from 'vitest';
+
+describe('Encyclopedia', function () {
+  const client = new WorldOfWarplanes({
+    realm: 'na',
+    applicationId: process.env.APPLICATION_ID,
+  });
+
+  describe('#findPlane()', function () {
+    it('finds planes by ID', function () {
+      return expect(
+        client.encyclopedia.findPlane(2702),
+      ).resolves.toHaveProperty('name_i18n', 'Ilyushin IL-8');
+    });
+
+    it('finds planes by name', function () {
+      return expect(
+        client.encyclopedia.findPlane('grumman f2f'),
+      ).resolves.toHaveProperty('name_i18n', 'Grumman F2F');
+    });
+
+    it('finds planes by partial name match', function () {
+      return expect(
+        client.encyclopedia.findPlane('p-40'),
+      ).resolves.toHaveProperty('name_i18n', 'Curtiss P-40 Warhawk');
+    });
+
+    it('throws for invalid identifier types', function () {
+      return expect(
+        client.encyclopedia.findPlane({} as string),
+      ).rejects.toBeInstanceOf(Error);
+    });
+  });
+});
