@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+## [1.0.0]
+### Added
+- Initial support for typescript
+- switch build system
+
+
 ## [0.5.0]
 ### Added
 - Additional options to configure the client's data cache.
